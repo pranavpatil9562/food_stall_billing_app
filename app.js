@@ -4,6 +4,92 @@
 //   { name: "Tea", price: 10 },
 //   { name: "Coffee", price: 15 }
 // ];
+// === ESC/POS builder ===
+function buildEscPosCommands(current) {
+  const { billNo, date, time, items, total } = current;
+  let cmds = "";
+  cmds += "\x1B\x40";                // Init
+  cmds += "\x1B\x61\x01";            // Center
+  cmds += "ABHI TIFFIN CENTER\n";
+  cmds += "\x1B\x61\x00";            // Left
+  cmds += `Bill No: ATC-${billNo}\n`;
+  cmds += `Date: ${date}  Time: ${time}\n`;
+  cmds += "-----------------------------\n";
+  items.forEach(i => {
+    cmds += `${i.name.padEnd(10)} ${i.qty.toString().padEnd(3)} x${i.price}\n`;
+  });
+  cmds += "-----------------------------\n";
+  cmds += `TOTAL: ₹${total}\n\n\n`;
+  cmds += "\x1D\x56\x41";            // Full cut
+  return cmds;
+}
+
+// === Direct‑print: QZ Tray (desktop) or Web Bluetooth (mobile) ===
+async function printBillRaw(current) {
+  const raw = buildEscPosCommands(current);
+
+  // 1) QZ Tray (desktop)
+  if (window.qz) {
+    try {
+      await qz.api.connect();
+      const cfg = qz.configs.create(); // default printer or pass name
+      await qz.print(cfg, [{ type:'raw', format:'command', data:raw }]);
+      await qz.api.disconnect();
+      return;
+    } catch (err) {
+      console.warn("QZ Tray failed:", err);
+    }
+  }
+
+  // 2) Web Bluetooth (mobile)
+  if (navigator.bluetooth) {
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: 'Thermal' }],
+        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+      });
+      const server  = await device.gatt.connect();
+      const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+      const char    = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+      await char.writeValue(new TextEncoder().encode(raw));
+      await server.disconnect();
+      return;
+    } catch (err) {
+      console.warn("Web Bluetooth failed:", err);
+    }
+  }
+
+  // 3) Fallback
+  alert("Direct print unavailable—opening browser print dialog.");
+  printBill();
+}
+
+// === Wrapper to prepare data & call direct‑print ===
+function prepareAndPrint() {
+  const date = new Date();
+  const current = {
+    billNo,
+    date: date.toLocaleDateString(),
+    time: date.toLocaleTimeString(),
+    items: [...selectedItems],
+    total: selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0)
+  };
+
+  // Save just like printBill()
+  sales.push(current);
+  localStorage.setItem("sales", JSON.stringify(sales));
+  localStorage.setItem("billNo", ++billNo);
+
+  // Try raw‑print, fallback to printBill()
+  printBillRaw(current);
+
+  // Reset UI
+  selectedItems = [];
+  renderBill();
+  renderChart();
+  updateDashboard();
+}
+
 const items = [
   { name: "Milk", price: 15, image: "images/milk.jpeg" },
   { name: "Tea", price: 10, image: "images/tea.jpg" },
