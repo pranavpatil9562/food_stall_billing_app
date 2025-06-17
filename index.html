@@ -42,31 +42,32 @@
       <div id="total-display">Total: ₹0</div>
       <button onclick="printBill()">Print Bill</button>
        <button onclick="showDashboard()">Dashboard</button>
-    <div id="dashboard" class="dashboard-box">
+<div id="dashboard" class="dashboard-box">
   <h2>📊 Sales Dashboard</h2>
   <div class="dashboard-flex">
-    <!-- Dashboard cards -->
+    <!-- Metrics cards -->
     <div class="dashboard-metrics">
       <div class="card card-green">
         <h3>💰 Total Sales</h3>
-        <p id="dash-total-sales"></p>
+        <p id="dash-total-sales">₹0</p>
       </div>
       <div class="card card-orange">
         <h3>📦 Total Quantity</h3>
-        <p id="dash-total-qty"></p>
+        <p id="dash-total-qty">0</p>
       </div>
       <div class="card card-blue">
         <h3>🧾 Bills Made</h3>
-        <p id="dash-total-bills"></p>
+        <p id="dash-total-bills">0</p>
       </div>
     </div>
 
-    <!-- Pie chart beside -->
+    <!-- Pie chart beside metrics -->
     <div class="dashboard-chart">
       <canvas id="salesChart" width="300" height="300"></canvas>
     </div>
   </div>
 </div>
+
  
 
 
