@@ -9,12 +9,13 @@
 <body>
   <div class="container">
     <h1>Food Stall Billing App</h1>
-
+    
     <div id="login-section">
       <input type="text" id="username" placeholder="Enter Username"/>
       <button onclick="login()">Login</button>
     </div>
-
+    
+    <h3>A SAAS Product by Tech Innovators!</h3>
     <div id="app-section" style="display:none;">
       <div class="top-bar">
         <span id="user-display"></span>
@@ -42,6 +43,8 @@
       <div id="total-display">Total: ₹0</div>
       <button onclick="printBill()">Print Bill</button>
        <button onclick="showDashboard()">Dashboard</button>
+       <button onclick="clearAllBills()" class="clear-button">Clear All Bills</button>
+
 <div id="dashboard" class="dashboard-box">
   <h2>📊 Sales Dashboard</h2>
   <div class="dashboard-flex">

@@ -5,10 +5,24 @@
 //   { name: "Coffee", price: 15 }
 // ];
 const items = [
+  { name: "Milk", price: 15, image: "images/milk.jpeg" },
+  { name: "Tea", price: 10, image: "images/tea.jpg" },
+  { name: "Coffee", price: 15, image: "images/coffee.jpg" },
+  { name: "Boost", price: 20, image: "images/boost.jpg" },
+  { name: "BlackTea", price: 15, image: "images/blacktea.jpg" },
+  { name: "Idli", price: 15, image: "images/idli.jpg" },
+  { name: "Dosa", price: 20, image: "images/dosa.jpg" },
+  { name: "Wada", price: 10, image: "images/wada.jpg" },
+  { name: "Uttapa", price: 15, image: "images/uttapam.jpg" },
+  { name: "Alubhat", price: 20, image: "images/dosa.jpg" },
   { name: "Samosa", price: 15, image: "images/samosa.jpg" },
   { name: "Vada Pav", price: 20, image: "images/vada_pav.jpg" },
-  { name: "Tea", price: 10, image: "images/tea.jpg" },
-  { name: "Coffee", price: 15, image: "images/coffee.jpg" }
+  { name: "Mirchi", price: 10, image: "images/mirchi-bajji.jpg" },
+  { name: "Bhonda", price: 15, image: "images/mysore-bonda.jpg" },
+  { name: "Colddrinks", price: 10, image: "images/wada.jpg" },
+  { name: "Waterbottle", price: 15, image: "images/waterbottles.jpg" },
+  { name: "Ice-cream", price: 15, image: "images/icecream.jpg" },
+  { name: "Others", price: 15, image: "images/others.jpg" }
 ];
 
 
@@ -32,28 +46,67 @@ function logout() {
   sessionStorage.clear();
   location.reload();
 }
+// function logout() {
+//   localStorage.removeItem("loggedIn");
+//   window.location.href = "index.html";
+// }
 
+
+// function loadMenu() {
+//   const menuDiv = document.getElementById("menu");
+//   menuDiv.innerHTML = "";
+//   items.forEach(item => {
+//     const div = document.createElement("div");
+//     div.className = "menu-item";
+//     div.onclick = () => addToBill(item);
+
+//     const img = document.createElement("img");
+//     img.src = item.image;
+//     img.alt = item.name;
+//     img.className = "menu-image"; // New class for styling
+
+//     const label = document.createElement("div");
+//     label.innerHTML = `${item.name}<br>₹${item.price}`;
+
+//     div.appendChild(img);
+//     div.appendChild(label);
+//     menuDiv.appendChild(div);
+//   });
+// }
 function loadMenu() {
   const menuDiv = document.getElementById("menu");
   menuDiv.innerHTML = "";
-  items.forEach(item => {
+
+  items.forEach((item, index) => {
+    const existing = selectedItems.find(i => i.name === item.name);
+    const quantity = existing ? existing.qty : 0;
+
     const div = document.createElement("div");
     div.className = "menu-item";
-    div.onclick = () => addToBill(item);
 
     const img = document.createElement("img");
     img.src = item.image;
     img.alt = item.name;
-    img.className = "menu-image"; // New class for styling
+    img.className = "menu-image";
 
     const label = document.createElement("div");
     label.innerHTML = `${item.name}<br>₹${item.price}`;
 
+    const controls = document.createElement("div");
+    controls.className = "menu-controls";
+    controls.innerHTML = `
+      <button onclick="changeQty(${index}, -1)">−</button>
+      <span id="qty-${index}">${quantity}</span>
+      <button onclick="changeQty(${index}, 1)">+</button>
+    `;
+
     div.appendChild(img);
     div.appendChild(label);
+    div.appendChild(controls);
     menuDiv.appendChild(div);
   });
 }
+
 
 
 
@@ -62,6 +115,23 @@ function addToBill(item) {
   if (existing) existing.qty++;
   else selectedItems.push({ ...item, qty: 1 });
   renderBill();
+}
+function changeQty(index, delta) {
+  const item = items[index];
+  const existing = selectedItems.find(i => i.name === item.name);
+
+  if (existing) {
+    existing.qty += delta;
+    if (existing.qty <= 0) {
+      selectedItems = selectedItems.filter(i => i.name !== item.name);
+    }
+  } else if (delta > 0) {
+    selectedItems.push({ ...item, qty: 1 });
+  }
+
+  renderBill();
+  document.getElementById(`qty-${index}`).innerText =
+    selectedItems.find(i => i.name === item.name)?.qty || 0;
 }
 
 function renderBill() {
@@ -109,16 +179,18 @@ function printBill() {
   localStorage.setItem("sales", JSON.stringify(sales));
   localStorage.setItem("billNo", ++billNo);
 
-  let printWindow = window.open("", "_blank");
+  // let printWindow = window.open("", "_blank"); // earlier this print method was used,
+  let printWindow = window.open('', '', 'width=400,height=600');// this prints bill in chrome tab of given size
   let billHTML = `
     <html>
     <head><title>Print Bill</title></head>
     <body onload="window.print(); window.close();">
     <pre style="font-family: monospace;">
-------------------------------------
+-------------------------------
         ABHI TIFFIN CENTER
-    Shop no.4,Patil Complex,Bidar
-------------------------------------
+    Shop no.4,Patil Complex,
+             Bidar
+-------------------------------
 Bill No:ATC-${current.billNo}
 Date,Time:${current.date},${current.time}
 -------------------------------
@@ -128,6 +200,7 @@ ${current.items.map(i =>
 ).join('\n')}
 -------------------------------
 Total Items: ${current.items.length},Total Qty:${current.items.reduce((sum, i) => sum + i.qty, 0)}
+-------------------------------
 Grand Total: ₹${current.total}
 -------------------------------
     THANK YOU! VISIT AGAIN
@@ -136,12 +209,21 @@ Grand Total: ₹${current.total}
     </body>
     </html>`;
   printWindow.document.write(billHTML);
-
   selectedItems = [];
   renderBill();
   renderChart();
   updateDashboard();
 
+}
+function clearAllBills() {
+  if (confirm("Are you sure you want to clear all bills and reset data?")) {
+    localStorage.removeItem("sales");
+    localStorage.setItem("billNo", 1);
+    selectedItems = [];
+    renderBill();
+    updateDashboard();
+    alert("All bills cleared. Starting fresh!");
+  }
 }
 
 
@@ -224,28 +306,40 @@ function updateDashboard() {
 
   if (chart) chart.destroy(); // destroy old chart if exists
 
-  chart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Item Sales Share',
-        data: data,
-        backgroundColor: [
-          '#ff6384', '#36a2eb', '#ffce56', '#4bc0c0', '#9966ff', '#f67019'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom'
+chart = new Chart(ctx, {
+  type: 'pie',
+  data: {
+    labels: labels,
+    datasets: [{
+      data: data,
+      backgroundColor: [
+        '#ff6384', // red-pink
+        '#36a2eb', // blue
+        '#ffce56', // yellow
+        '#4bc0c0', // teal
+        '#9966ff', // purple
+        '#f67019', // orange
+        '#00c49f', // green-cyan
+        '#ff9f40', // light orange
+        '#c45850', // brownish
+        '#8e5ea2'  // violet
+      ],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#ffffff' // matches bluish theme
         }
       }
     }
-  });
+  }
+});
+
 }
 window.onload = updateDashboard;
 
