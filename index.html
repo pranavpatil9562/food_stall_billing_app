@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Food Stall Billing</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Food Stall Billing App</h1>
+
+    <div id="login-section">
+      <input type="text" id="username" placeholder="Enter Username"/>
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div id="app-section" style="display:none;">
+      <div class="top-bar">
+        <span id="user-display"></span>
+        <button onclick="logout()">Logout</button>
+       
+
+      </div>
+
+      <h2>Menu</h2>
+      <div id="menu"></div>
+
+      <h2>Selected Items</h2>
+      <table id="bill-table">
+       <thead>
+  <tr>
+    <th>Item</th>
+    <th>Qty</th>
+    <th>Rate</th>
+    <th>Total</th>
+  </tr>
+</thead>
+
+        <tbody></tbody>
+      </table>
+      <div id="total-display">Total: ₹0</div>
+      <button onclick="printBill()">Print Bill</button>
+       <button onclick="showDashboard()">Dashboard</button>
+    <div id="dashboard" class="dashboard-box">
+  <h2>📊 Sales Dashboard</h2>
+  <div class="dashboard-flex">
+    <!-- Dashboard cards -->
+    <div class="dashboard-metrics">
+      <div class="card card-green">
+        <h3>💰 Total Sales</h3>
+        <p id="dash-total-sales"></p>
+      </div>
+      <div class="card card-orange">
+        <h3>📦 Total Quantity</h3>
+        <p id="dash-total-qty"></p>
+      </div>
+      <div class="card card-blue">
+        <h3>🧾 Bills Made</h3>
+        <p id="dash-total-bills"></p>
+      </div>
+    </div>
+
+    <!-- Pie chart beside -->
+    <div class="dashboard-chart">
+      <canvas id="salesChart" width="300" height="300"></canvas>
+    </div>
+  </div>
+</div>
+ 
+
+
+      
+    </div>
+  
+  
+
+  </div>
+
+  <script src="libs/chart.min.js"></script>
+  <script src="libs/FileSaver.js"></script>
+  <script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+</body>
+</html>
