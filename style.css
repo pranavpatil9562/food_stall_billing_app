@@ -143,21 +143,24 @@ input[type="text"] {
 }
 
 .dashboard-flex {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 30px;
-  justify-content: space-between;
   align-items: stretch;
-  flex-wrap: wrap;
 }
 
 .dashboard-metrics {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
   gap: 15px;
-  flex: 1;
-  min-width: 220px;
 }
 
+.dashboard-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
 .card {
   background: white;
   padding: 15px;
@@ -232,4 +235,13 @@ input[type="text"] {
 
 .card-blue {
   background-color: #007bff;
+}
+@media screen and (max-width: 768px) {
+  .dashboard-flex {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-chart {
+    margin-top: 20px;
+  }
 }
