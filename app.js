@@ -253,14 +253,16 @@ const items = [
   { name: "Dosa", price: 20, image: "images/dosa.jpg" },
   { name: "Wada", price: 10, image: "images/wada.jpg" },
   { name: "Uttapa", price: 15, image: "images/uttapam.jpg" },
-  { name: "Alubhat", price: 20, image: "images/dosa.jpg" },
+  { name: "Alubhat", price: 20, image: "images/alubhat.jpg" },
   { name: "Samosa", price: 15, image: "images/samosa.jpg" },
   { name: "Vada Pav", price: 20, image: "images/vada_pav.jpg" },
   { name: "Mirchi", price: 10, image: "images/mirchi-bajji.jpg" },
   { name: "Bhonda", price: 15, image: "images/mysore-bonda.jpg" },
-  { name: "Colddrinks", price: 10, image: "images/wada.jpg" },
+  { name: "Colddrinks", price: 10, image: "images/cold-drink.jpg" },
   { name: "Waterbottle", price: 15, image: "images/waterbottles.jpg" },
   { name: "Ice-cream", price: 15, image: "images/icecream.jpg" },
+  { name: "Others", price: 15, image: "images/others.jpg" },
+  { name: "Others", price: 15, image: "images/others.jpg" },
   { name: "Others", price: 15, image: "images/others.jpg" }
 ];
 
@@ -630,6 +632,13 @@ window.onload = function () {
   renderMenuTable();
   loadMenu(); // Assuming this is defined elsewhere for bill UI
 };
+function toggleClearButton() {
+  const input = document.getElementById("search-bar");
+  const clearBtn = document.getElementById("clear-search");
+  clearBtn.style.display = input.value.length ? "inline" : "none";
+}
+
+
 
 
 
