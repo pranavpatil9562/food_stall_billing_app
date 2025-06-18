@@ -4,6 +4,83 @@
 //   { name: "Tea", price: 10 },
 //   { name: "Coffee", price: 15 }
 // ];
+// async function connectAndPrint() {
+//   const printer = new WebBluetoothReceiptPrinter();
+
+//   try {
+//     // Connect to the printer via BLE
+//     await printer.connect();
+
+//     // Start a new print job
+//     printer.printText("ABHI TIFFIN CENTER\n", { bold: true, align: "center" });
+//     printer.printText("------------------------\n");
+//     printer.printText("Bill No: 101\n");
+//     printer.printText("Date: 2025-06-18\nTime: 1:45 PM\n\n");
+//     printer.printText("Vada Pav    x2    Rs. 40\n");
+//     printer.printText("Tea         x1    Rs. 10\n");
+//     printer.printText("------------------------\n");
+//     printer.printText("Total             Rs. 50\n", { bold: true });
+//     printer.printText("\nThank You!\n\n\n");
+
+//     await printer.flush(); // Sends the data to printer
+//   } catch (error) {
+//     console.error("Error:", error);
+//     alert("Printer connection failed.");
+//   }
+//   alert("Direct print unavailable—opening browser print dialog.");
+//   printBill();
+// }
+function printBill() {
+  const date = new Date();
+  const current = {
+    date: date.toLocaleDateString(),
+    time: date.toLocaleTimeString(),
+    billNo,
+    items: [...selectedItems],
+    total: selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0)
+  };
+
+  sales.push(current);
+  localStorage.setItem("sales", JSON.stringify(sales));
+  localStorage.setItem("billNo", ++billNo);
+
+  // let printWindow = window.open("", "_blank"); // earlier this print method was used,
+  let printWindow = window.open('', '', 'width=400,height=600');// this prints bill in chrome tab of given size
+  let billHTML = `
+    <html>
+    <head><title>Print Bill</title></head>
+    <body onload="window.print(); window.close();">
+    <pre style="font-family: monospace;">
+-------------------------------
+        ABHI TIFFIN CENTER
+    Shop no.4,Patil Complex,
+             Bidar
+-------------------------------
+Bill No:ATC-${current.billNo}
+Date,Time:${current.date},${current.time}
+-------------------------------
+Item       Qty  Rate  Total
+${current.items.map(i =>
+  `${i.name.padEnd(10)} ${i.qty.toString().padEnd(4)} ₹${i.price.toString().padEnd(5)} ₹${(i.price * i.qty)}`
+).join('\n')}
+-------------------------------
+Total Items: ${current.items.length},Total Qty:${current.items.reduce((sum, i) => sum + i.qty, 0)}
+-------------------------------
+Grand Total: ₹${current.total}
+-------------------------------
+    THANK YOU! VISIT AGAIN
+-------------------------------
+    </pre>
+    </body>
+    </html>`;
+  printWindow.document.write(billHTML);
+  selectedItems = [];
+  renderBill();
+  renderChart();
+  updateDashboard();
+
+}
+
 // === ESC/POS builder ===
 function buildEscPosCommands(current) {
   const { billNo, date, time, items, total } = current;
@@ -13,21 +90,23 @@ function buildEscPosCommands(current) {
   cmds += "ABHI TIFFIN CENTER\n";
   cmds += "\x1B\x61\x00";            // Left
   cmds += `Bill No: ATC-${billNo}\n`;
-  cmds += `Date: ${date}  Time: ${time}\n`;
+  cmds += `Date: ${date},Time: ${time}\n`;
   cmds += "-----------------------------\n";
+  cmds += "Item     Qty   Total\n";
   items.forEach(i => {
     cmds += `${i.name.padEnd(10)} ${i.qty.toString().padEnd(3)} x${i.price}\n`;
   });
   cmds += "-----------------------------\n";
-  cmds += `TOTAL: ₹${total}\n\n\n`;
+  cmds += `TOTAL: ${total}\n`;
+  cmds += "Thank You! Visit Again.\n\n\n";
   cmds += "\x1D\x56\x41";            // Full cut
   return cmds;
 }
 
-// === Direct‑print: QZ Tray (desktop) or Web Bluetooth (mobile) ===
+//=== Direct‑print: QZ Tray (desktop) or Web Bluetooth (mobile) ===
 async function printBillRaw(current) {
   const raw = buildEscPosCommands(current);
-
+  console.log(raw)
   // 1) QZ Tray (desktop)
   if (window.qz) {
     try {
@@ -45,9 +124,15 @@ async function printBillRaw(current) {
   if (navigator.bluetooth) {
     try {
       const device = await navigator.bluetooth.requestDevice({
-        filters: [{ namePrefix: 'Thermal' }],
-        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-      });
+         acceptAllDevices: true,
+         optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+        });
+
+      // const device = await navigator.bluetooth.requestDevice({
+      //   filters: [{ namePrefix: 'Thermal' }],
+      //   optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+      // });
+      console.log("Selected device:", device.name);
       const server  = await device.gatt.connect();
       const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
       const char    = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
@@ -63,17 +148,7 @@ async function printBillRaw(current) {
   alert("Direct print unavailable—opening browser print dialog.");
   printBill();
 }
-function isMobileBrowser() {
-  return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-}
 
-function printBillSmart() {
-  if (isMobileBrowser()) {
-    printBill(); // Use HTML print for Android
-  } else {
-    printBillRaw(); // Use QZ Tray / Bluetooth for desktop
-  }
-}
 
 
 // === Wrapper to prepare data & call direct‑print ===
@@ -92,14 +167,26 @@ function prepareAndPrint() {
   localStorage.setItem("sales", JSON.stringify(sales));
   localStorage.setItem("billNo", ++billNo);
 
-  // Try raw‑print, fallback to printBill()
-  printBillRaw(current);
+  // // Try raw‑print, fallback to printBill()
+  // printBillRaw(current);
 
-  // Reset UI
-  selectedItems = [];
-  renderBill();
-  renderChart();
-  updateDashboard();
+  // // Reset UI
+  // selectedItems = [];
+  // renderBill();
+  // renderChart();
+  // updateDashboard();
+  // Try raw‑print, fallback to printBill()
+  printBillRaw(current).then(() => {
+    // Reset UI
+    selectedItems = [];
+    renderBill();
+    renderChart();
+    updateDashboard();
+   });
+   //.catch(err => {
+  //   console.error("Print failed:", err);
+  //   alert("Print failed. Please try again.");
+  // });
 }
 
 const items = [
@@ -144,33 +231,7 @@ function logout() {
   sessionStorage.clear();
   location.reload();
 }
-// function logout() {
-//   localStorage.removeItem("loggedIn");
-//   window.location.href = "index.html";
-// }
 
-
-// function loadMenu() {
-//   const menuDiv = document.getElementById("menu");
-//   menuDiv.innerHTML = "";
-//   items.forEach(item => {
-//     const div = document.createElement("div");
-//     div.className = "menu-item";
-//     div.onclick = () => addToBill(item);
-
-//     const img = document.createElement("img");
-//     img.src = item.image;
-//     img.alt = item.name;
-//     img.className = "menu-image"; // New class for styling
-
-//     const label = document.createElement("div");
-//     label.innerHTML = `${item.name}<br>₹${item.price}`;
-
-//     div.appendChild(img);
-//     div.appendChild(label);
-//     menuDiv.appendChild(div);
-//   });
-// }
 function loadMenu() {
   const menuDiv = document.getElementById("menu");
   menuDiv.innerHTML = "";
@@ -263,56 +324,7 @@ function renderBill() {
 
 
 
-function printBill() {
-  const date = new Date();
-  const current = {
-    date: date.toLocaleDateString(),
-    time: date.toLocaleTimeString(),
-    billNo,
-    items: [...selectedItems],
-    total: selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0)
-  };
 
-  sales.push(current);
-  localStorage.setItem("sales", JSON.stringify(sales));
-  localStorage.setItem("billNo", ++billNo);
-
-  // let printWindow = window.open("", "_blank"); // earlier this print method was used,
-  let printWindow = window.open('', '', 'width=400,height=600');// this prints bill in chrome tab of given size
-  let billHTML = `
-    <html>
-    <head><title>Print Bill</title></head>
-    <body onload="window.print(); window.close();">
-    <pre style="font-family: monospace;">
--------------------------------
-        ABHI TIFFIN CENTER
-    Shop no.4,Patil Complex,
-             Bidar
--------------------------------
-Bill No:ATC-${current.billNo}
-Date,Time:${current.date},${current.time}
--------------------------------
-Item       Qty  Rate  Total
-${current.items.map(i =>
-  `${i.name.padEnd(10)} ${i.qty.toString().padEnd(4)} ₹${i.price.toString().padEnd(5)} ₹${(i.price * i.qty)}`
-).join('\n')}
--------------------------------
-Total Items: ${current.items.length},Total Qty:${current.items.reduce((sum, i) => sum + i.qty, 0)}
--------------------------------
-Grand Total: ₹${current.total}
--------------------------------
-    THANK YOU! VISIT AGAIN
--------------------------------
-    </pre>
-    </body>
-    </html>`;
-  printWindow.document.write(billHTML);
-  selectedItems = [];
-  renderBill();
-  renderChart();
-  updateDashboard();
-
-}
 function clearAllBills() {
   if (confirm("Are you sure you want to clear all bills and reset data?")) {
     localStorage.removeItem("sales");
