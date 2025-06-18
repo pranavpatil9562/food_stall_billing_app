@@ -588,6 +588,51 @@ chart = new Chart(ctx, {
 });
 
 }
+function renderMenuTable() {
+  const tbody = document.querySelector("#menu-item-table tbody");
+  tbody.innerHTML = "";
+
+  items.forEach((item, index) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${item.name}</td>
+      <td><input type="number" value="${item.price}" onchange="updateItemPrice(${index}, this.value)" /></td>
+      <td><img src="${item.image}" alt="${item.name}" width="40" height="30" /></td>
+      <td>
+        <button onclick="removeMenuItem(${index})" style="background-color:red;">❌ Remove</button>
+      </td>
+    `;
+
+    tbody.appendChild(row);
+  });
+}
+// ========== MENU ITEMS AND STORAGE ==========
+
+
+// REMOVE MENU MANAGEMENT AFTER LOGIN
+function login() {
+  const user = document.getElementById("username").value;
+  if (user) {
+    sessionStorage.setItem("user", user);
+    document.getElementById("login-section").style.display = "none";
+    document.getElementById("app-section").style.display = "block";
+    document.getElementById("user-display").innerText = `Welcome, ${user}`;
+    loadMenu();
+    renderChart();
+  }
+}
+
+
+
+window.onload = function () {
+  loadMenuFromStorage();
+  renderMenuTable();
+  loadMenu(); // Assuming this is defined elsewhere for bill UI
+};
+
+
+
 window.onload = updateDashboard;
 
 
