@@ -30,6 +30,39 @@
 //   alert("Direct print unavailable—opening browser print dialog.");
 //   printBill();
 // }
+function loadMenu() {
+  const menuDiv = document.getElementById("menu");
+  menuDiv.innerHTML = "";
+
+  items.forEach((item, index) => {
+    const existing = selectedItems.find(i => i.name === item.name);
+    const quantity = existing ? existing.qty : 0;
+
+    const div = document.createElement("div");
+    div.className = "menu-item";
+
+    const img = document.createElement("img");
+    img.src = item.image;
+    img.alt = item.name;
+    img.className = "menu-image";
+
+    const label = document.createElement("div");
+    label.innerHTML = `${item.name}<br>₹${item.price}`;
+
+    const controls = document.createElement("div");
+    controls.className = "menu-controls";
+    controls.innerHTML = `
+      <button onclick="changeQty(${index}, -1)">−</button>
+      <span id="qty-${index}">${quantity}</span>
+      <button onclick="changeQty(${index}, 1)">+</button>
+    `;
+
+    div.appendChild(img);
+    div.appendChild(label);
+    div.appendChild(controls);
+    menuDiv.appendChild(div);
+  });
+}
 function printBill() {
   const date = new Date();
   const current = {
@@ -92,13 +125,17 @@ function buildEscPosCommands(current) {
   cmds += `Bill No: ATC-${billNo}\n`;
   cmds += `Date: ${date},Time: ${time}\n`;
   cmds += "-----------------------------\n";
-  cmds += "Item     Qty   Total\n";
+  cmds += "Item      Qty  Rate  Total\n";
   items.forEach(i => {
-    cmds += `${i.name.padEnd(10)} ${i.qty.toString().padEnd(3)} x${i.price}\n`;
+    cmds += `${i.name.padEnd(10)} ${i.qty.toString().padEnd(3)} x${i.price}     ${i.price*i.qty} \n`;
   });
+  cmds += "--------------\n";
+  cmds += `Total items:${current.items.length}\n`;
   cmds += "-----------------------------\n";
-  cmds += `TOTAL: ${total}\n`;
-  cmds += "Thank You! Visit Again.\n\n\n";
+  cmds += `GRAND TOTAL:|${total}|\n`;
+  cmds += "-----------------------------\n";
+  cmds += "Thank You! Visit Again.\n";
+  cmds += "Software by Tech Innovators.\n\n\n";
   cmds += "\x1D\x56\x41";            // Full cut
   return cmds;
 }
@@ -166,28 +203,38 @@ function prepareAndPrint() {
   sales.push(current);
   localStorage.setItem("sales", JSON.stringify(sales));
   localStorage.setItem("billNo", ++billNo);
-
+  // printBillRaw(current).catch(err => {
+  //   console.error("Print failed:", err);
+  //   alert("Print failed. Please try again.");
+  // }).finally(() => {
+  //   selectedItems = [];
+  //   loadMenu();          // <== reset all quantities
+  //   renderBill();
+  //   renderChart();
+  //   updateDashboard();
+  // });
+   printBillRaw(current).then(() => {
+    
+    selectedItems = [];
+    loadMenu();
+    renderBill();
+    renderChart();
+    updateDashboard();});
+  //   .catch(err => {
+  //   console.error("Print failed:", err);
+  //   alert("Print failed. Please try again.");
+  //  });
+   
+}
+  
+  
   // // Try raw‑print, fallback to printBill()
   // printBillRaw(current);
 
-  // // Reset UI
-  // selectedItems = [];
-  // renderBill();
-  // renderChart();
-  // updateDashboard();
+  
   // Try raw‑print, fallback to printBill()
-  printBillRaw(current).then(() => {
-    // Reset UI
-    selectedItems = [];
-    renderBill();
-    renderChart();
-    updateDashboard();
-   });
-   //.catch(err => {
-  //   console.error("Print failed:", err);
-  //   alert("Print failed. Please try again.");
-  // });
-}
+ 
+// }
 
 const items = [
   { name: "Milk", price: 15, image: "images/milk.jpeg" },
@@ -232,39 +279,7 @@ function logout() {
   location.reload();
 }
 
-function loadMenu() {
-  const menuDiv = document.getElementById("menu");
-  menuDiv.innerHTML = "";
 
-  items.forEach((item, index) => {
-    const existing = selectedItems.find(i => i.name === item.name);
-    const quantity = existing ? existing.qty : 0;
-
-    const div = document.createElement("div");
-    div.className = "menu-item";
-
-    const img = document.createElement("img");
-    img.src = item.image;
-    img.alt = item.name;
-    img.className = "menu-image";
-
-    const label = document.createElement("div");
-    label.innerHTML = `${item.name}<br>₹${item.price}`;
-
-    const controls = document.createElement("div");
-    controls.className = "menu-controls";
-    controls.innerHTML = `
-      <button onclick="changeQty(${index}, -1)">−</button>
-      <span id="qty-${index}">${quantity}</span>
-      <button onclick="changeQty(${index}, 1)">+</button>
-    `;
-
-    div.appendChild(img);
-    div.appendChild(label);
-    div.appendChild(controls);
-    menuDiv.appendChild(div);
-  });
-}
 
 
 
