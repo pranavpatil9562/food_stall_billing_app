@@ -63,6 +63,18 @@ async function printBillRaw(current) {
   alert("Direct print unavailable—opening browser print dialog.");
   printBill();
 }
+function isMobileBrowser() {
+  return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function printBillSmart() {
+  if (isMobileBrowser()) {
+    printBill(); // Use HTML print for Android
+  } else {
+    printBillRaw(); // Use QZ Tray / Bluetooth for desktop
+  }
+}
+
 
 // === Wrapper to prepare data & call direct‑print ===
 function prepareAndPrint() {
