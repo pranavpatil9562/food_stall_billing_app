@@ -456,7 +456,6 @@ async function exportSalesToPDF() {
     sale.items.forEach(item => {
       const total = item.qty * item.price;
 
-      // Print each item
       doc.text(item.name, 20, y);
       doc.text(item.qty.toString(), 85, y);
       doc.text(`₹${item.price}`, 110, y);
@@ -490,18 +489,17 @@ async function exportSalesToPDF() {
 
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(`Summary Report for ${today}`, 105, 25, null, null, 'center');
-  
+  doc.text(`Summary Report for ${today}`, 105, y, null, null, 'center');
   y += 10;
 
   doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
   doc.text("Item", 20, y);
   doc.text("Total Qty", 80, y);
   doc.text("Total Amount", 130, y);
   y += 6;
 
   doc.setFont("helvetica", "normal");
-
   for (const [name, { qty, total }] of Object.entries(itemSummary)) {
     doc.text(name, 20, y);
     doc.text(`${qty}`, 85, y);
@@ -514,11 +512,19 @@ async function exportSalesToPDF() {
     }
   }
 
+  // ✅ Add total quantity sold
+  const totalQty = Object.values(itemSummary).reduce((sum, item) => sum + item.qty, 0);
+  y += 10;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  doc.text(`Total Quantity Sold: ${totalQty}`, 105, y, null, null, 'center');
+
+  // ✅ Add grand total
   y += 10;
   doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
   doc.text(`Grand Total for the Day: ₹${grandTotal}`, 105, y, null, null, 'center');
 
+  // Save PDF
   doc.save(`Sales_Report_${today.replace(/\//g, '-')}.pdf`);
 }
 
