@@ -123,7 +123,7 @@ function buildEscPosCommands(current) {
   cmds += "ABHI TIFFIN CENTER\n";
   cmds += "\x1B\x61\x00";            // Left
   cmds += `Bill No: ATC-${billNo}\n`;
-  cmds += `Date: ${date},Time: ${time}\n`;
+  cmds += `Date:${date},Time:${time}\n`;
   cmds += "-----------------------------\n";
   cmds += "Item      Qty  Rate  Total\n";
   items.forEach(i => {
@@ -143,13 +143,15 @@ function buildEscPosCommands(current) {
 //=== Direct‑print: QZ Tray (desktop) or Web Bluetooth (mobile) ===
 async function printBillRaw(current) {
   const raw = buildEscPosCommands(current);
-  console.log(raw)
+  const encoder = new TextEncoder();
+  const encoded = encoder.encode(raw);
+
   // 1) QZ Tray (desktop)
   if (window.qz) {
     try {
       await qz.api.connect();
       const cfg = qz.configs.create(); // default printer or pass name
-      await qz.print(cfg, [{ type:'raw', format:'command', data:raw }]);
+      await qz.print(cfg, [{ type: 'raw', format: 'command', data: raw }]);
       await qz.api.disconnect();
       return;
     } catch (err) {
@@ -161,19 +163,23 @@ async function printBillRaw(current) {
   if (navigator.bluetooth) {
     try {
       const device = await navigator.bluetooth.requestDevice({
-         acceptAllDevices: true,
-         optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-        });
+        acceptAllDevices: true,
+        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+      });
 
-      // const device = await navigator.bluetooth.requestDevice({
-      //   filters: [{ namePrefix: 'Thermal' }],
-      //   optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
-      // });
       console.log("Selected device:", device.name);
-      const server  = await device.gatt.connect();
+      const server = await device.gatt.connect();
       const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-      const char    = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-      await char.writeValue(new TextEncoder().encode(raw));
+      const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+      // Split encoded data into 512-byte chunks and send sequentially
+      const chunkSize = 512;
+      for (let i = 0; i < encoded.length; i += chunkSize) {
+        const chunk = encoded.slice(i, i + chunkSize);
+        await char.writeValue(chunk);
+        await new Promise(resolve => setTimeout(resolve, 50)); // small delay
+      }
+
       await server.disconnect();
       return;
     } catch (err) {
@@ -185,6 +191,7 @@ async function printBillRaw(current) {
   alert("Direct print unavailable—opening browser print dialog.");
   printBill();
 }
+
 
 
 
@@ -277,6 +284,15 @@ function login() {
 function logout() {
   sessionStorage.clear();
   location.reload();
+}
+function filterMenu() {
+  const query = document.getElementById("search-bar").value.toLowerCase();
+  const menuItems = document.querySelectorAll(".menu-item");
+
+  menuItems.forEach(item => {
+    const name = item.querySelector("div").innerText.toLowerCase();
+    item.style.display = name.includes(query) ? "block" : "none";
+  });
 }
 
 
@@ -399,6 +415,112 @@ function showDashboard() {
 
   document.getElementById("dashboard").style.display = "block";
 }
+async function exportSalesToPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const today = new Date().toLocaleDateString();
+  const salesData = JSON.parse(localStorage.getItem("sales") || "[]");
+  const todaySales = salesData.filter(s => s.date === today);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("ABHI TIFFIN CENTER", 105, 15, null, null, 'center');
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+  doc.text(`Sales Report for ${today}`, 105, 25, null, null, 'center');
+
+  let y = 35;
+  let grandTotal = 0;
+  const itemSummary = {}; // { itemName: { qty: x, total: y } }
+
+  todaySales.forEach((sale, index) => {
+    doc.setFont("helvetica", "bold");
+    doc.text(`Bill No: ATC-${sale.billNo}`, 14, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Date: ${sale.date}`, 100, y);
+    doc.text(`Time: ${sale.time}`, 150, y);
+    y += 6;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Item", 20, y);
+    doc.text("Qty", 80, y);
+    doc.text("Rate", 110, y);
+    doc.text("Total", 150, y);
+    y += 6;
+
+    doc.setFont("helvetica", "normal");
+    sale.items.forEach(item => {
+      const total = item.qty * item.price;
+
+      // Print each item
+      doc.text(item.name, 20, y);
+      doc.text(item.qty.toString(), 85, y);
+      doc.text(`₹${item.price}`, 110, y);
+      doc.text(`₹${total}`, 150, y);
+      y += 6;
+
+      // Accumulate for summary
+      if (!itemSummary[item.name]) {
+        itemSummary[item.name] = { qty: 0, total: 0 };
+      }
+      itemSummary[item.name].qty += item.qty;
+      itemSummary[item.name].total += total;
+
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`Subtotal: ₹${sale.total}`, 150, y);
+    y += 10;
+    grandTotal += sale.total;
+  });
+
+  // Add summary header
+  if (y > 240) {
+    doc.addPage();
+    y = 20;
+  }
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Summary Report for ${today}`, 105, 25, null, null, 'center');
+  
+  y += 10;
+
+  doc.setFontSize(12);
+  doc.text("Item", 20, y);
+  doc.text("Total Qty", 80, y);
+  doc.text("Total Amount", 130, y);
+  y += 6;
+
+  doc.setFont("helvetica", "normal");
+
+  for (const [name, { qty, total }] of Object.entries(itemSummary)) {
+    doc.text(name, 20, y);
+    doc.text(`${qty}`, 85, y);
+    doc.text(`₹${total}`, 130, y);
+    y += 6;
+
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+    }
+  }
+
+  y += 10;
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Grand Total for the Day: ₹${grandTotal}`, 105, y, null, null, 'center');
+
+  doc.save(`Sales_Report_${today.replace(/\//g, '-')}.pdf`);
+}
+
+
 
 let chart; // store chart instance globally
 

@@ -22,6 +22,8 @@
         <span id="user-display"></span>
         <button onclick="logout()">Logout</button>
       </div>
+      <input type="text" id="search-bar" placeholder="Search menu..." oninput="filterMenu()" />
+
       <h2>Menu</h2>
       <div id="menu"></div>
       <h2>Selected Items</h2>
@@ -43,6 +45,7 @@
        <button onclick="prepareAndPrint()">Print Bill</button>
       <!-- <button onclick="connectAndPrint()">Pprint Receipt</button> -->
        <button onclick="showDashboard()">Dashboard</button>
+       <button onclick="exportSalesToPDF()">Export Sales PDF</button>
        <button onclick="clearAllBills()" class="clear-button">Clear All Bills</button>
 
 <div id="dashboard" class="dashboard-box">
@@ -79,6 +82,7 @@
   <script src="app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/webbluetoothreceiptprinter/dist/index.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 </body>
 </html>
