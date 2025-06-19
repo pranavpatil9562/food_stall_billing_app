@@ -4,39 +4,48 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Food Stall Billing</title>
-
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <div class="container">
+ 
+
+    <div class="header-with-logos-vertical">
+  <img src="images/logo1.jpg" alt="Left Logo" class="logo-vertical">
+  <div class="title-block">
     <h1>Food Stall Billing Application</h1>
-    <div id="login-section">
-  <input type="text" id="username" placeholder="Enter Username" />
-  <input type="password" id="password" placeholder="Enter Password" />
-  <button onclick="login()">Login</button>
-  <button onclick="register()">Register</button>
+    <h3 class="tagline">A SAAS Product by Tech Innovators!</h3>
+  </div>
+  <img src="images/complogo1.png" alt="Right Logo" class="logo-vertical">
 </div>
 
-    <!-- <div id="login-section">
-      <input type="text" id="username" placeholder="Enter Username"/>
-      <button onclick="login()">Login</button>
-    </div> -->
+   <div id="login-section" class="login-form">
+  <h2>Login</h2>
+  <input type="text" id="username" placeholder="Enter Username" onkeydown="handleEnter(event)" />
+<input type="password" id="password" placeholder="Enter Password" onkeydown="handleEnter(event)" />
+  <div class="login-buttons">
+    <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
+  </div>
+</div>
     
-
-    
-    <h3>A SAAS Product by Tech Innovators!</h3>
     <div id="app-section" style="display:none;">
-      <div class="top-bar">
+      <!-- <div class="top-bar">
         <span id="user-display"></span>
         <button onclick="logout()">Logout</button>
-      </div>
+      </div> -->
+
+      <div class="top-bar">
+  <span id="user-display"></span>
+  <div class="top-bar-actions">
+    <button class="small-button" onclick="logout()">Logout</button>
+
+  </div>
+</div>
+      <h2>Menu</h2>
       <input type="text" id="search-bar" placeholder="Search menu..." oninput="filterMenu()" />
       
-
-      <h2>Menu</h2>
       <div id="menu"></div>
-
-
       <h2>Selected Items</h2>
       <table id="bill-table">
        <thead>
@@ -47,64 +56,17 @@
     <th>Total</th>
   </tr>
 </thead>
-
         <tbody></tbody>
       </table>
       <div id="total-display">Total: ₹0</div>
-      <!-- <button onclick="printBill()">Print Bill</button>  -->
-     
-       <button onclick="prepareAndPrint()">Print Bill</button>
-      <!-- <button onclick="connectAndPrint()">Pprint Receipt</button> -->
-       <button onclick="showDashboard()">Dashboard</button>
-       <!-- Menu Management Button -->
-<button id="menu-manage-btn" onclick="toggleMenuManager()" style="margin: 10px;">
-  🍽️ Manage Menu
-</button>
-
-<!-- Menu Management Panel -->
-<div id="menu-manager" style="display: none; border: 1px solid #ccc; padding: 10px; background: #f8f8f8;">
-  <h3>Menu Manager</h3>
-  <table id="menu-item-table" border="1" cellpadding="5" cellspacing="0">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Price (₹)</th>
-        <th>Image</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <h4>Add New Item</h4>
-<input type="text" id="new-item-name" placeholder="Item name" />
-<input type="number" id="new-item-price" placeholder="Price" />
-<input type="file" id="new-item-image" accept="image/*" capture="environment" />
-<br>
-<img id="image-preview" src="" alt="Preview" style="display:none; width:60px; height:50px; margin-top:5px;" />
-<br>
-<button onclick="addNewMenuItem()">Add Item</button>
-
+      <!-- Always-visible print button -->
+<div class="print-button-container">
+  <button onclick="prepareAndPrint()">🖨️ Print Bill</button>
 </div>
-
-       <button onclick="disconnectPrinter()">🔌 Disconnect Printer</button>
-
-      <div style="margin: 15px 0;">
-  <label>🗓 Export Sales Report:</label>
-  <select id="report-range">
-    <option value="today">Today</option>
-    <option value="last7">Last 7 Days</option>
-    <option value="custom">Custom Range</option>
-  </select>
-  <input type="date" id="start-date" style="display:none;">
-  <input type="date" id="end-date" style="display:none;">
-  <button onclick="exportSalesToPDFRange()">📄 Export PDF</button>
-</div>
-
-       <button onclick="clearAllBills()" class="clear-button">Clear All Bills</button>
 
 <div id="dashboard" class="dashboard-box">
   <h2>📊 Sales Dashboard</h2>
+   <button onclick="showDashboard()">📊 Load Dashboard</button>
   <div class="dashboard-flex">
     <!-- Metrics cards -->
     <div class="dashboard-metrics">
@@ -121,15 +83,64 @@
         <p id="dash-total-bills">0</p>
       </div>
     </div>
-
     <!-- Pie chart beside metrics -->
     <div class="dashboard-chart">
       <canvas id="salesChart" width="300" height="300"></canvas>
     </div>
   </div>
+
 </div> 
+    <!-- Settings togle -->
+<div class="settings-wrapper">
+  <button onclick="toggleSettings()">⚙️ Settings</button>
+  <div id="settings-panel" style="display:none; margin-top: 10px;">
+    <div class="report-section">
+      <label>🗓 Export Sales Report:</label>
+      <select id="report-range">
+        <option value="today">Today</option>
+        <option value="last7">Last 7 Days</option>
+        <option value="custom">Custom Range</option>
+      </select>
+      <input type="date" id="start-date" style="display:none;">
+      <input type="date" id="end-date" style="display:none;">
+      <button onclick="exportSalesToPDFRange()">📄 Export PDF</button>
     </div>
+   
+    
+    <button onclick="disconnectPrinter()">🔌 Disconnect Printer</button>
+      <button id="menu-manage-btn" onclick="toggleMenuManager()">🍽️ Manage Menu</button>
+<div id="menu-manager" style="display: none; border: 1px solid #ccc; padding: 10px; background: #f8f8f8;">
+  <h3>Menu Manager</h3>
+  <table id="menu-item-table" border="1" cellpadding="5" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Price (₹)</th>
+        <th>Image</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <h4>Add New Item</h4>
+<input type="text" id="new-item-name" placeholder="Item name" />
+<input type="number" id="new-item-price" placeholder="Price" />
+<input type="file" id="new-item-image" accept="image/*" capture="environment" />
+<br>
+<img id="image-preview" src="" alt="Preview" style="display:none; width:60px; height:50px; margin-top:5px;" />
+<br>
+<button onclick="addNewMenuItem()">Add Item</button>
+</div>
+    
+
+    <button onclick="clearAllBills()" class="clear-button">🗑️ Clear All Bills</button>
   </div>
+</div>
+ 
+    </div>
+     
+  </div>
+   
    <!-- QZ Tray for desktop raw‑print -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
   <script src="libs/chart.min.js"></script>
@@ -139,6 +150,5 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/webbluetoothreceiptprinter/dist/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 </body>
 </html>

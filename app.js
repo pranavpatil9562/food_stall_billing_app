@@ -863,3 +863,31 @@ function disconnectPrinter() {
     alert("No printer connected.");
   }
 }
+function toggleSettings() {
+  const panel = document.getElementById("settings-panel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
+
+function handleEnter(event) {
+  if (event.key === "Enter") {
+    // Check if the active field is the username or password, and trigger login or register
+    const usernameField = document.getElementById("username");
+    const passwordField = document.getElementById("password");
+
+    if (document.activeElement === usernameField) {
+      // If username field is focused, trigger login
+      document.getElementById("password").focus(); // Move focus to password
+    } else if (document.activeElement === passwordField) {
+      // If password field is focused, trigger login or register
+      const loginButton = document.querySelector("button[onclick='login()']");
+      const registerButton = document.querySelector("button[onclick='register()']");
+
+      if (loginButton) {
+        login();  // Trigger login
+      } else if (registerButton) {
+        register();  // Trigger register
+      }
+    }
+  }
+}
+
