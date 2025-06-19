@@ -855,3 +855,11 @@ function toggleMenuManager() {
     manager.style.display = "none";
   }
 }
+function disconnectPrinter() {
+  if (printerDevice && printerDevice.gatt.connected) {
+    printerDevice.gatt.disconnect();
+    alert("Printer disconnected successfully.");
+  } else {
+    alert("No printer connected.");
+  }
+}
