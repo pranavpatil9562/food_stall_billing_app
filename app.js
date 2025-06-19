@@ -1,6 +1,17 @@
 
 let printerDevice = null;
 let printerCharacteristic = null;
+let items = [];
+let selectedItems = [];
+let billNo = parseInt(localStorage.getItem("billNo")) || 1;
+let sales = JSON.parse(localStorage.getItem("sales") || "[]");
+let chart;
+let newImageBase64 = "";
+// let selectedItems = [];
+// let billNo = parseInt(localStorage.getItem("billNo")) || 1;
+// let sales = JSON.parse(localStorage.getItem("sales")) || [];
+// let printerDevice = null;
+// let printerCharacteristic = null;
 
 function loadMenu() {
   const menuDiv = document.getElementById("menu");
@@ -221,34 +232,39 @@ function prepareAndPrint() {
   // Try raw‑print, fallback to printBill()
  
 // }
+// const DEFAULT_MENU = [
+//   { name: "Milk", price: 15, image: "images/milk.jpeg" },
+//   { name: "Tea", price: 10, image: "images/tea.jpg" },
+//   // ... all your original menu items
+// ];
 
-const items = [
-  { name: "Milk", price: 15, image: "images/milk.jpeg" },
-  { name: "Tea", price: 10, image: "images/tea.jpg" },
-  { name: "Coffee", price: 15, image: "images/coffee.jpg" },
-  { name: "Boost", price: 20, image: "images/boost.jpg" },
-  { name: "BlackTea", price: 15, image: "images/blacktea.jpg" },
-  { name: "Idli", price: 15, image: "images/idli.jpg" },
-  { name: "Dosa", price: 20, image: "images/dosa.jpg" },
-  { name: "Wada", price: 10, image: "images/wada.jpg" },
-  { name: "Uttapa", price: 15, image: "images/uttapam.jpg" },
-  { name: "Alubhat", price: 20, image: "images/alubhat.jpg" },
-  { name: "Samosa", price: 15, image: "images/samosa.jpg" },
-  { name: "Vada Pav", price: 20, image: "images/vada_pav.jpg" },
-  { name: "Mirchi", price: 10, image: "images/mirchi-bajji.jpg" },
-  { name: "Bhonda", price: 15, image: "images/mysore-bonda.jpg" },
-  { name: "Colddrinks", price: 10, image: "images/cold-drink.jpg" },
-  { name: "Waterbottle", price: 15, image: "images/waterbottles.jpg" },
-  { name: "Ice-cream", price: 15, image: "images/icecream.jpg" },
-  { name: "Roti", price: 15, image: "images/others.jpg" },
-  { name: "Rice", price: 15, image: "images/others.jpg" },
-  { name: "Sambar", price: 15, image: "images/others.jpg" }
-];
+// let items = [];
+
+// const items = [
+//   { name: "Milk", price: 15, image: "images/milk.jpeg" },
+//   { name: "Tea", price: 10, image: "images/tea.jpg" },
+//   { name: "Coffee", price: 15, image: "images/coffee.jpg" },
+//   { name: "Boost", price: 20, image: "images/boost.jpg" },
+//   { name: "BlackTea", price: 15, image: "images/blacktea.jpg" },
+//   { name: "Idli", price: 15, image: "images/idli.jpg" },
+//   { name: "Dosa", price: 20, image: "images/dosa.jpg" },
+//   { name: "Wada", price: 10, image: "images/wada.jpg" },
+//   { name: "Uttapa", price: 15, image: "images/uttapam.jpg" },
+//   { name: "Alubhat", price: 20, image: "images/alubhat.jpg" },
+//   { name: "Samosa", price: 15, image: "images/samosa.jpg" },
+//   { name: "Vada Pav", price: 20, image: "images/vada_pav.jpg" },
+//   { name: "Mirchi", price: 10, image: "images/mirchi-bajji.jpg" },
+//   { name: "Bhonda", price: 15, image: "images/mysore-bonda.jpg" },
+//   { name: "Colddrinks", price: 10, image: "images/cold-drink.jpg" },
+//   { name: "Waterbottle", price: 15, image: "images/waterbottles.jpg" },
+//   { name: "Ice-cream", price: 15, image: "images/icecream.jpg" },
+//   { name: "Roti", price: 15, image: "images/others.jpg" },
+//   { name: "Rice", price: 15, image: "images/others.jpg" },
+//   { name: "Sambar", price: 15, image: "images/others.jpg" }
+// ];
 
 
-let selectedItems = [];
-let billNo = parseInt(localStorage.getItem("billNo")) || 1;
-let sales = JSON.parse(localStorage.getItem("sales")) || [];
+
 
 // function login() {
 //   const user = document.getElementById("username").value;
@@ -275,12 +291,6 @@ function filterMenu() {
     item.style.display = name.includes(query) ? "block" : "none";
   });
 }
-
-
-
-
-
-
 function addToBill(item) {
   const existing = selectedItems.find(i => i.name === item.name);
   if (existing) existing.qty++;
@@ -333,10 +343,6 @@ function renderBill() {
   document.getElementById("total-display").innerText = summary;
   
 }
-
-
-
-
 function clearAllBills() {
   if (confirm("Are you sure you want to clear all bills and reset data?")) {
     localStorage.removeItem("sales");
@@ -347,9 +353,6 @@ function clearAllBills() {
     alert("All bills cleared. Starting fresh!");
   }
 }
-
-
-
 function renderChart() {
   const today = new Date().toLocaleDateString();
   const todaySales = sales.filter(s => s.date === today);
@@ -532,12 +535,7 @@ document.getElementById("report-range").addEventListener("change", function () {
   const filename = `Sales_Report_${option}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
   doc.save(filename);
 }
-
-
-
-
-let chart; // store chart instance globally
-
+// store chart instance globally
 function updateDashboard() {
   const today = new Date().toLocaleDateString();
   const salesData = JSON.parse(localStorage.getItem("sales") || "[]");
@@ -649,15 +647,211 @@ function toggleClearButton() {
   const clearBtn = document.getElementById("clear-search");
   clearBtn.style.display = input.value.length ? "inline" : "none";
 }
-
-
-
-
-
-window.onload = updateDashboard;
-
-
-
-
-
+// window.onload = updateDashboard;
+window.onload = function () {
+  loadMenuFromStorage();     // ← get menu
+  renderMenuTable();         // ← show for editing
+  loadMenu();                // ← show on main menu
+  updateDashboard();
+};
 if (sessionStorage.getItem("user")) login();
+async function hashPassword(password) {
+  const msgUint8 = new TextEncoder().encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+async function login() {
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
+
+  if (!user || !pass) {
+    alert("Please enter both username and password.");
+    return;
+  }
+
+  const users = JSON.parse(localStorage.getItem("users") || "{}");
+
+  if (!users[user]) {
+    alert("User not found. Please register.");
+    return;
+  }
+
+  const hash = await hashPassword(pass);
+  if (users[user] !== hash) {
+    alert("Incorrect password.");
+    return;
+  }
+
+  sessionStorage.setItem("user", user);
+  document.getElementById("login-section").style.display = "none";
+  document.getElementById("app-section").style.display = "block";
+  document.getElementById("user-display").innerText = `Welcome, ${user}`;
+  loadMenu();
+  renderChart();
+}
+async function register() {
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
+
+  if (!user || !pass) {
+    alert("Enter username and password to register.");
+    return;
+  }
+
+  const users = JSON.parse(localStorage.getItem("users") || "{}");
+
+  if (users[user]) {
+    alert("Username already exists. Try logging in.");
+    return;
+  }
+
+  const hash = await hashPassword(pass);
+  users[user] = hash;
+  localStorage.setItem("users", JSON.stringify(users));
+
+  alert("User registered successfully. You can now log in.");
+}
+
+
+const DEFAULT_MENU = [
+  { name: "Milk", price: 15, image: "images/milk.jpeg" },
+  { name: "Tea", price: 10, image: "images/tea.jpg" },
+  { name: "Coffee", price: 15, image: "images/coffee.jpg" },
+  { name: "Boost", price: 20, image: "images/boost.jpg" },
+  { name: "BlackTea", price: 15, image: "images/blacktea.jpg" },
+  { name: "Idli", price: 15, image: "images/idli.jpg" },
+  { name: "Dosa", price: 20, image: "images/dosa.jpg" },
+  { name: "Wada", price: 10, image: "images/wada.jpg" },
+  { name: "Uttapa", price: 15, image: "images/uttapam.jpg" },
+  { name: "Alubhat", price: 20, image: "images/alubhat.jpg" },
+  { name: "Samosa", price: 15, image: "images/samosa.jpg" },
+  { name: "Vada Pav", price: 20, image: "images/vada_pav.jpg" },
+  { name: "Mirchi", price: 10, image: "images/mirchi-bajji.jpg" },
+  { name: "Bhonda", price: 15, image: "images/mysore-bonda.jpg" },
+  { name: "Colddrinks", price: 10, image: "images/cold-drink.jpg" },
+  { name: "Waterbottle", price: 15, image: "images/waterbottles.jpg" },
+  { name: "Ice-cream", price: 15, image: "images/icecream.jpg" },
+  { name: "Roti", price: 15, image: "images/others.jpg" },
+  { name: "Rice", price: 15, image: "images/others.jpg" },
+  { name: "Sambar", price: 15, image: "images/others.jpg" }
+];
+
+function saveMenuToStorage() {
+  localStorage.setItem("menu", JSON.stringify(items));
+}
+
+function loadMenuFromStorage() {
+  items = JSON.parse(localStorage.getItem("menu") || "[]");
+  if (items.length === 0) {
+    items = [...DEFAULT_MENU];
+    saveMenuToStorage();
+  }
+}
+
+function loadMenu() {
+  const menuDiv = document.getElementById("menu");
+  menuDiv.innerHTML = "";
+  items.forEach((item, index) => {
+    const existing = selectedItems.find(i => i.name === item.name);
+    const quantity = existing ? existing.qty : 0;
+    const div = document.createElement("div");
+    div.className = "menu-item";
+    const img = document.createElement("img");
+    img.src = item.image;
+    img.alt = item.name;
+    img.className = "menu-image";
+    const label = document.createElement("div");
+    label.innerHTML = `${item.name}<br>₹${item.price}`;
+    const controls = document.createElement("div");
+    controls.className = "menu-controls";
+    controls.innerHTML = `
+      <button onclick="changeQty(${index}, -1)">−</button>
+      <span id="qty-${index}">${quantity}</span>
+      <button onclick="changeQty(${index}, 1)">+</button>
+    `;
+    div.appendChild(img);
+    div.appendChild(label);
+    div.appendChild(controls);
+    menuDiv.appendChild(div);
+  });
+}
+
+function renderMenuTable() {
+  const tbody = document.querySelector("#menu-item-table tbody");
+  tbody.innerHTML = "";
+  items.forEach((item, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.name}</td>
+      <td><input type="number" value="${item.price}" onchange="updateItemPrice(${index}, this.value)" /></td>
+      <td><img src="${item.image}" alt="${item.name}" width="40" height="30" /></td>
+      <td><button onclick="removeMenuItem(${index})" style="background-color:red;">❌ Remove</button></td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function updateItemPrice(index, newPrice) {
+  items[index].price = parseFloat(newPrice);
+  saveMenuToStorage();
+  loadMenu();
+}
+
+function removeMenuItem(index) {
+  if (confirm(`Remove ${items[index].name}?`)) {
+    items.splice(index, 1);
+    saveMenuToStorage();
+    renderMenuTable();
+    loadMenu();
+  }
+}
+
+function addNewMenuItem() {
+  const name = document.getElementById("new-item-name").value.trim();
+  const price = parseFloat(document.getElementById("new-item-price").value);
+  if (!name || isNaN(price) || !newImageBase64) {
+    alert("Please fill all fields and select an image.");
+    return;
+  }
+  items.push({ name, price, image: newImageBase64 });
+  saveMenuToStorage();
+  renderMenuTable();
+  loadMenu();
+  document.getElementById("new-item-name").value = "";
+  document.getElementById("new-item-price").value = "";
+  document.getElementById("new-item-image").value = "";
+  document.getElementById("image-preview").style.display = "none";
+  newImageBase64 = "";
+}
+
+document.getElementById("new-item-image").addEventListener("change", function (event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      newImageBase64 = e.target.result;
+      const preview = document.getElementById("image-preview");
+      preview.src = newImageBase64;
+      preview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+window.onload = function () {
+  loadMenuFromStorage();
+  renderMenuTable();
+  loadMenu();
+  updateDashboard();
+  if (sessionStorage.getItem("user")) login();
+};
+function toggleMenuManager() {
+  const manager = document.getElementById("menu-manager");
+  if (manager.style.display === "none") {
+    manager.style.display = "block";
+    renderMenuTable(); // optional: ensures the table is freshly rendered
+  } else {
+    manager.style.display = "none";
+  }
+}

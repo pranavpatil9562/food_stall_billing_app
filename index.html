@@ -56,6 +56,37 @@
        <button onclick="prepareAndPrint()">Print Bill</button>
       <!-- <button onclick="connectAndPrint()">Pprint Receipt</button> -->
        <button onclick="showDashboard()">Dashboard</button>
+       <!-- Menu Management Button -->
+<button id="menu-manage-btn" onclick="toggleMenuManager()" style="margin: 10px;">
+  🍽️ Manage Menu
+</button>
+
+<!-- Menu Management Panel -->
+<div id="menu-manager" style="display: none; border: 1px solid #ccc; padding: 10px; background: #f8f8f8;">
+  <h3>Menu Manager</h3>
+  <table id="menu-item-table" border="1" cellpadding="5" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Price (₹)</th>
+        <th>Image</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h4>Add New Item</h4>
+<input type="text" id="new-item-name" placeholder="Item name" />
+<input type="number" id="new-item-price" placeholder="Price" />
+<input type="file" id="new-item-image" accept="image/*" capture="environment" />
+<br>
+<img id="image-preview" src="" alt="Preview" style="display:none; width:60px; height:50px; margin-top:5px;" />
+<br>
+<button onclick="addNewMenuItem()">Add Item</button>
+
+</div>
+
        <!-- <button onclick="disconnectPrinter()">🔌 Disconnect Printer</button> -->
 
       <div style="margin: 15px 0;">
