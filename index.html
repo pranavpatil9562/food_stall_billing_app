@@ -10,11 +10,17 @@
 <body>
   <div class="container">
     <h1>Food Stall Billing Application</h1>
-    
     <div id="login-section">
+  <input type="text" id="username" placeholder="Enter Username" />
+  <input type="password" id="password" placeholder="Enter Password" />
+  <button onclick="login()">Login</button>
+  <button onclick="register()">Register</button>
+</div>
+
+    <!-- <div id="login-section">
       <input type="text" id="username" placeholder="Enter Username"/>
       <button onclick="login()">Login</button>
-    </div>
+    </div> -->
     
 
     
@@ -50,7 +56,20 @@
        <button onclick="prepareAndPrint()">Print Bill</button>
       <!-- <button onclick="connectAndPrint()">Pprint Receipt</button> -->
        <button onclick="showDashboard()">Dashboard</button>
-       <button onclick="exportSalesToPDF()">Export Sales PDF</button>
+       <!-- <button onclick="disconnectPrinter()">🔌 Disconnect Printer</button> -->
+
+      <div style="margin: 15px 0;">
+  <label>🗓 Export Sales Report:</label>
+  <select id="report-range">
+    <option value="today">Today</option>
+    <option value="last7">Last 7 Days</option>
+    <option value="custom">Custom Range</option>
+  </select>
+  <input type="date" id="start-date" style="display:none;">
+  <input type="date" id="end-date" style="display:none;">
+  <button onclick="exportSalesToPDFRange()">📄 Export PDF</button>
+</div>
+
        <button onclick="clearAllBills()" class="clear-button">Clear All Bills</button>
 
 <div id="dashboard" class="dashboard-box">
@@ -85,6 +104,7 @@
   <script src="libs/chart.min.js"></script>
   <script src="libs/FileSaver.js"></script>
   <script src="app.js"></script>
+  <script src="app1.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/webbluetoothreceiptprinter/dist/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

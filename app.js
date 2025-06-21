@@ -1,35 +1,7 @@
-// const items = [
-//   { name: "Samosa", price: 15 },
-//   { name: "Vada Pav", price: 20 },
-//   { name: "Tea", price: 10 },
-//   { name: "Coffee", price: 15 }
-// ];
-// async function connectAndPrint() {
-//   const printer = new WebBluetoothReceiptPrinter();
 
-//   try {
-//     // Connect to the printer via BLE
-//     await printer.connect();
+let printerDevice = null;
+let printerCharacteristic = null;
 
-//     // Start a new print job
-//     printer.printText("ABHI TIFFIN CENTER\n", { bold: true, align: "center" });
-//     printer.printText("------------------------\n");
-//     printer.printText("Bill No: 101\n");
-//     printer.printText("Date: 2025-06-18\nTime: 1:45 PM\n\n");
-//     printer.printText("Vada Pav    x2    Rs. 40\n");
-//     printer.printText("Tea         x1    Rs. 10\n");
-//     printer.printText("------------------------\n");
-//     printer.printText("Total             Rs. 50\n", { bold: true });
-//     printer.printText("\nThank You!\n\n\n");
-
-//     await printer.flush(); // Sends the data to printer
-//   } catch (error) {
-//     console.error("Error:", error);
-//     alert("Printer connection failed.");
-//   }
-//   alert("Direct print unavailable—opening browser print dialog.");
-//   printBill();
-// }
 function loadMenu() {
   const menuDiv = document.getElementById("menu");
   menuDiv.innerHTML = "";
@@ -160,32 +132,39 @@ async function printBillRaw(current) {
   }
 
   // 2) Web Bluetooth (mobile)
-  if (navigator.bluetooth) {
-    try {
-      const device = await navigator.bluetooth.requestDevice({
+ // 2) Web Bluetooth (mobile)
+if (navigator.bluetooth) {
+  try {
+    // Connect only once
+    if (!printerDevice || !printerCharacteristic) {
+      printerDevice = await navigator.bluetooth.requestDevice({
         acceptAllDevices: true,
         optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
       });
 
-      console.log("Selected device:", device.name);
-      const server = await device.gatt.connect();
+      const server = await printerDevice.gatt.connect();
       const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-      const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+      printerCharacteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
 
-      // Split encoded data into 512-byte chunks and send sequentially
-      const chunkSize = 512;
-      for (let i = 0; i < encoded.length; i += chunkSize) {
-        const chunk = encoded.slice(i, i + chunkSize);
-        await char.writeValue(chunk);
-        await new Promise(resolve => setTimeout(resolve, 50)); // small delay
-      }
-
-      await server.disconnect();
-      return;
-    } catch (err) {
-      console.warn("Web Bluetooth failed:", err);
+      console.log("🔗 Printer connected:", printerDevice.name);
     }
+
+    // Send chunks
+    const chunkSize = 512;
+    for (let i = 0; i < encoded.length; i += chunkSize) {
+      const chunk = encoded.slice(i, i + chunkSize);
+      await printerCharacteristic.writeValue(chunk);
+      await new Promise(resolve => setTimeout(resolve, 50)); // small delay
+    }
+
+    return;
+  } catch (err) {
+    console.warn("Web Bluetooth failed:", err);
+    printerDevice = null;
+    printerCharacteristic = null;
   }
+}
+
 
   // 3) Fallback
   alert("Direct print unavailable—opening browser print dialog.");
@@ -261,9 +240,9 @@ const items = [
   { name: "Colddrinks", price: 10, image: "images/cold-drink.jpg" },
   { name: "Waterbottle", price: 15, image: "images/waterbottles.jpg" },
   { name: "Ice-cream", price: 15, image: "images/icecream.jpg" },
-  { name: "Others", price: 15, image: "images/others.jpg" },
-  { name: "Others", price: 15, image: "images/others.jpg" },
-  { name: "Others", price: 15, image: "images/others.jpg" }
+  { name: "Roti", price: 15, image: "images/others.jpg" },
+  { name: "Rice", price: 15, image: "images/others.jpg" },
+  { name: "Sambar", price: 15, image: "images/others.jpg" }
 ];
 
 
@@ -271,17 +250,17 @@ let selectedItems = [];
 let billNo = parseInt(localStorage.getItem("billNo")) || 1;
 let sales = JSON.parse(localStorage.getItem("sales")) || [];
 
-function login() {
-  const user = document.getElementById("username").value;
-  if (user) {
-    sessionStorage.setItem("user", user);
-    document.getElementById("login-section").style.display = "none";
-    document.getElementById("app-section").style.display = "block";
-    document.getElementById("user-display").innerText = `Welcome, ${user}`;
-    loadMenu();
-    renderChart();
-  }
-}
+// function login() {
+//   const user = document.getElementById("username").value;
+//   if (user) {
+//     sessionStorage.setItem("user", user);
+//     document.getElementById("login-section").style.display = "none";
+//     document.getElementById("app-section").style.display = "block";
+//     document.getElementById("user-display").innerText = `Welcome, ${user}`;
+//     loadMenu();
+//     renderChart();
+//   }
+// }
 
 function logout() {
   sessionStorage.clear();
@@ -417,27 +396,62 @@ function showDashboard() {
 
   document.getElementById("dashboard").style.display = "block";
 }
-async function exportSalesToPDF() {
+async function exportSalesToPDFRange() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const today = new Date().toLocaleDateString();
+  const option = document.getElementById("report-range").value;
+  let start, end;
+  const today = new Date();
+
+  if (option === "today") {
+    start = new Date(today.setHours(0, 0, 0, 0));
+    end = new Date(today.setHours(23, 59, 59, 999));
+  } else if (option === "last7") {
+    start = new Date(today);
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+    end = new Date(); // now
+  } else {
+    start = new Date(document.getElementById("start-date").value);
+    end = new Date(document.getElementById("end-date").value);
+    if (isNaN(start) || isNaN(end)) {
+      alert("Please select both start and end dates.");
+      return;
+    }
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+  }
+
   const salesData = JSON.parse(localStorage.getItem("sales") || "[]");
-  const todaySales = salesData.filter(s => s.date === today);
+
+  const filteredSales = salesData.filter(sale => {
+    const saleDate = new Date(sale.date).getTime();
+    return saleDate >= start.getTime() && saleDate <= end.getTime();
+  });
+
+  if (filteredSales.length === 0) {
+    alert("No sales found in the selected range.");
+    return;
+  }
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   doc.text("ABHI TIFFIN CENTER", 105, 15, null, null, 'center');
 
+  const rangeText = option === "today" ? "Today" :
+                    option === "last7" ? "Last 7 Days" :
+                    `From ${start.toLocaleDateString()} to ${end.toLocaleDateString()}`;
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(12);
-  doc.text(`Sales Report for ${today}`, 105, 25, null, null, 'center');
+  doc.text(`Sales Report (${rangeText})`, 105, 25, null, null, 'center');
 
   let y = 35;
   let grandTotal = 0;
-  const itemSummary = {}; // { itemName: { qty: x, total: y } }
+  const itemSummary = {};
 
-  todaySales.forEach((sale, index) => {
+  filteredSales.forEach(sale => {
     doc.setFont("helvetica", "bold");
     doc.text(`Bill No: ATC-${sale.billNo}`, 14, y);
     doc.setFont("helvetica", "normal");
@@ -445,27 +459,21 @@ async function exportSalesToPDF() {
     doc.text(`Time: ${sale.time}`, 150, y);
     y += 6;
 
-    doc.setFont("helvetica", "bold");
     doc.text("Item", 20, y);
     doc.text("Qty", 80, y);
     doc.text("Rate", 110, y);
     doc.text("Total", 150, y);
     y += 6;
 
-    doc.setFont("helvetica", "normal");
     sale.items.forEach(item => {
       const total = item.qty * item.price;
-
       doc.text(item.name, 20, y);
-      doc.text(item.qty.toString(), 85, y);
+      doc.text(`${item.qty}`, 85, y);
       doc.text(`₹${item.price}`, 110, y);
       doc.text(`₹${total}`, 150, y);
       y += 6;
 
-      // Accumulate for summary
-      if (!itemSummary[item.name]) {
-        itemSummary[item.name] = { qty: 0, total: 0 };
-      }
+      if (!itemSummary[item.name]) itemSummary[item.name] = { qty: 0, total: 0 };
       itemSummary[item.name].qty += item.qty;
       itemSummary[item.name].total += total;
 
@@ -481,7 +489,6 @@ async function exportSalesToPDF() {
     grandTotal += sale.total;
   });
 
-  // Add summary header
   if (y > 240) {
     doc.addPage();
     y = 20;
@@ -489,44 +496,43 @@ async function exportSalesToPDF() {
 
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(`Summary Report for ${today}`, 105, y, null, null, 'center');
+  doc.text("Summary", 105, y, null, null, 'center');
   y += 10;
 
   doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
   doc.text("Item", 20, y);
   doc.text("Total Qty", 80, y);
-  doc.text("Total Amount", 130, y);
+  doc.text("Total Amt", 130, y);
   y += 6;
 
-  doc.setFont("helvetica", "normal");
   for (const [name, { qty, total }] of Object.entries(itemSummary)) {
     doc.text(name, 20, y);
     doc.text(`${qty}`, 85, y);
     doc.text(`₹${total}`, 130, y);
     y += 6;
-
     if (y > 270) {
       doc.addPage();
       y = 20;
     }
   }
+document.getElementById("report-range").addEventListener("change", function () {
+  const custom = this.value === "custom";
+  document.getElementById("start-date").style.display = custom ? "inline" : "none";
+  document.getElementById("end-date").style.display = custom ? "inline" : "none";
+});
 
-  // ✅ Add total quantity sold
   const totalQty = Object.values(itemSummary).reduce((sum, item) => sum + item.qty, 0);
   y += 10;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
   doc.text(`Total Quantity Sold: ${totalQty}`, 105, y, null, null, 'center');
-
-  // ✅ Add grand total
   y += 10;
   doc.setFontSize(14);
-  doc.text(`Grand Total for the Day: ₹${grandTotal}`, 105, y, null, null, 'center');
+  doc.text(`Grand Total: ₹${grandTotal}`, 105, y, null, null, 'center');
 
-  // Save PDF
-  doc.save(`Sales_Report_${today.replace(/\//g, '-')}.pdf`);
+  const filename = `Sales_Report_${option}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
+  doc.save(filename);
 }
+
 
 
 
