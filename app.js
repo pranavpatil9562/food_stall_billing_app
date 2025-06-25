@@ -546,6 +546,14 @@ async function exportSalesToPDFRange() {
 
   const filename = `Sales_Report_${option}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
   doc.save(filename);
+
+  // Mobile-friendly: open PDF in new tab
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    const pdfBlob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    window.open(blobUrl, '_blank');
+  }
+// ...existing code...
 }
 
 
