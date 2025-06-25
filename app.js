@@ -548,6 +548,7 @@ async function exportSalesToPDFRange() {
   doc.save(filename);
 }
 
+
 // store chart instance globally
 function updateDashboard() {
   const today = new Date().toLocaleDateString();
