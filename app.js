@@ -403,6 +403,10 @@ async function exportSalesToPDFRange() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
+  // Smaller font for better mobile compatibility
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+
   const option = document.getElementById("report-range").value;
   let start, end;
   const today = new Date();
@@ -427,7 +431,6 @@ async function exportSalesToPDFRange() {
   }
 
   const salesData = JSON.parse(localStorage.getItem("sales") || "[]");
-
   const filteredSales = salesData.filter(sale => {
     const saleDate = new Date(sale.date).getTime();
     return saleDate >= start.getTime() && saleDate <= end.getTime();
@@ -438,103 +441,113 @@ async function exportSalesToPDFRange() {
     return;
   }
 
+  const pageHeight = doc.internal.pageSize.height;
+  const lineHeight = 6;
+  const marginBottom = 20;
+  let y = 20;
+  let grandTotal = 0;
+  const itemSummary = {};
+
+  // Title
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("ABHI TIFFIN CENTER", 105, 15, null, null, 'center');
+  doc.setFontSize(14);
+  doc.text("ABHI TIFFIN CENTER", 105, y, null, null, 'center');
+  y += 8;
 
   const rangeText = option === "today" ? "Today" :
                     option === "last7" ? "Last 7 Days" :
                     `From ${start.toLocaleDateString()} to ${end.toLocaleDateString()}`;
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(12);
-  doc.text(`Sales Report (${rangeText})`, 105, 25, null, null, 'center');
+  doc.setFontSize(10);
+  doc.text(`Sales Report (${rangeText})`, 105, y, null, null, 'center');
+  y += 10;
 
-  let y = 35;
-  let grandTotal = 0;
-  const itemSummary = {};
-
+  // Loop through all sales
   filteredSales.forEach(sale => {
+    if (y + lineHeight * (sale.items.length + 5) > pageHeight - marginBottom) {
+      doc.addPage();
+      y = 20;
+    }
+
     doc.setFont("helvetica", "bold");
     doc.text(`Bill No: ATC-${sale.billNo}`, 14, y);
     doc.setFont("helvetica", "normal");
-    doc.text(`Date: ${sale.date}`, 100, y);
-    doc.text(`Time: ${sale.time}`, 150, y);
-    y += 6;
+    doc.text(`Date: ${sale.date}`, 80, y);
+    doc.text(`Time: ${sale.time}`, 140, y);
+    y += lineHeight;
 
     doc.text("Item", 20, y);
     doc.text("Qty", 80, y);
     doc.text("Rate", 110, y);
     doc.text("Total", 150, y);
-    y += 6;
+    y += lineHeight;
 
     sale.items.forEach(item => {
+      if (y + lineHeight > pageHeight - marginBottom) {
+        doc.addPage();
+        y = 20;
+      }
+
       const total = item.qty * item.price;
       doc.text(item.name, 20, y);
       doc.text(`${item.qty}`, 85, y);
       doc.text(`₹${item.price}`, 110, y);
       doc.text(`₹${total}`, 150, y);
-      y += 6;
+      y += lineHeight;
 
       if (!itemSummary[item.name]) itemSummary[item.name] = { qty: 0, total: 0 };
       itemSummary[item.name].qty += item.qty;
       itemSummary[item.name].total += total;
-
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
     });
 
     doc.setFont("helvetica", "bold");
     doc.text(`Subtotal: ₹${sale.total}`, 150, y);
-    y += 10;
     grandTotal += sale.total;
+    y += lineHeight + 2;
   });
 
-  if (y > 240) {
+  // Summary Section
+  if (y + 40 > pageHeight - marginBottom) {
     doc.addPage();
     y = 20;
   }
 
-  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
   doc.text("Summary", 105, y, null, null, 'center');
   y += 10;
 
-  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
   doc.text("Item", 20, y);
   doc.text("Total Qty", 80, y);
   doc.text("Total Amt", 130, y);
-  y += 6;
+  y += lineHeight;
 
   for (const [name, { qty, total }] of Object.entries(itemSummary)) {
-    doc.text(name, 20, y);
-    doc.text(`${qty}`, 85, y);
-    doc.text(`₹${total}`, 130, y);
-    y += 6;
-    if (y > 270) {
+    if (y + lineHeight > pageHeight - marginBottom) {
       doc.addPage();
       y = 20;
     }
+    doc.text(name, 20, y);
+    doc.text(`${qty}`, 85, y);
+    doc.text(`₹${total}`, 130, y);
+    y += lineHeight;
   }
-document.getElementById("report-range").addEventListener("change", function () {
-  const custom = this.value === "custom";
-  document.getElementById("start-date").style.display = custom ? "inline" : "none";
-  document.getElementById("end-date").style.display = custom ? "inline" : "none";
-});
 
   const totalQty = Object.values(itemSummary).reduce((sum, item) => sum + item.qty, 0);
   y += 10;
+
   doc.setFont("helvetica", "bold");
   doc.text(`Total Quantity Sold: ${totalQty}`, 105, y, null, null, 'center');
-  y += 10;
-  doc.setFontSize(14);
+  y += 8;
   doc.text(`Grand Total: ₹${grandTotal}`, 105, y, null, null, 'center');
 
   const filename = `Sales_Report_${option}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
   doc.save(filename);
 }
+
 // store chart instance globally
 function updateDashboard() {
   const today = new Date().toLocaleDateString();
