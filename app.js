@@ -22,6 +22,7 @@ function loadMenu() {
 
     const div = document.createElement("div");
     div.className = "menu-item";
+    div.onclick = () => addToBill(item); // 👈 Make entire card clickable
 
     const img = document.createElement("img");
     img.src = item.image;
@@ -34,9 +35,9 @@ function loadMenu() {
     const controls = document.createElement("div");
     controls.className = "menu-controls";
     controls.innerHTML = `
-      <button onclick="changeQty(${index}, -1)">−</button>
+      <button onclick="changeQty(${index}, -1); event.stopPropagation()">−</button>
       <span id="qty-${index}">${quantity}</span>
-      <button onclick="changeQty(${index}, 1)">+</button>
+      <button onclick="changeQty(${index}, 1); event.stopPropagation()">+</button>
     `;
 
     div.appendChild(img);
@@ -45,6 +46,7 @@ function loadMenu() {
     menuDiv.appendChild(div);
   });
 }
+
 function printBill() {
   const date = new Date();
   const current = {
