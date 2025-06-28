@@ -1,6 +1,5 @@
 
-let printerDevice = null;
-let printerCharacteristic = null;
+
 let items = [];
 let selectedItems = [];
 let billNo = parseInt(localStorage.getItem("billNo")) || 1;
@@ -96,6 +95,8 @@ Grand Total: ₹${current.total}
   updateDashboard();
 
 }
+let printerDevice = null;
+let printerCharacteristic = null;
 
 // === ESC/POS builder ===
 function buildEscPosCommands(current) {
@@ -266,22 +267,18 @@ function prepareAndPrint() {
 
 
 
-// function login() {
-//   const user = document.getElementById("username").value;
-//   if (user) {
-//     sessionStorage.setItem("user", user);
-//     document.getElementById("login-section").style.display = "none";
-//     document.getElementById("app-section").style.display = "block";
-//     document.getElementById("user-display").innerText = `Welcome, ${user}`;
-//     loadMenu();
-//     renderChart();
-//   }
-// }
 
+
+// function logout() {
+//   sessionStorage.clear();
+//   location.reload();
+// }
 function logout() {
-  sessionStorage.clear();
-  location.reload();
+  localStorage.removeItem("loggedInUser");
+  document.getElementById("login-section").style.display = "block";
+  document.getElementById("app-section").style.display = "none";
 }
+
 function filterMenu() {
   const query = document.getElementById("search-bar").value.toLowerCase();
   const menuItems = document.querySelectorAll(".menu-item");
@@ -645,37 +642,78 @@ function renderMenuTable() {
 
 
 // REMOVE MENU MANAGEMENT AFTER LOGIN
-function login() {
-  const user = document.getElementById("username").value;
-  if (user) {
-    sessionStorage.setItem("user", user);
-    document.getElementById("login-section").style.display = "none";
-    document.getElementById("app-section").style.display = "block";
-    document.getElementById("user-display").innerText = `Welcome, ${user}`;
-    loadMenu();
-    renderChart();
+// function login() {
+//   const user = document.getElementById("username").value;
+//   if (user) {
+//     sessionStorage.setItem("user", user);
+//     document.getElementById("login-section").style.display = "none";
+//     document.getElementById("app-section").style.display = "block";
+//     document.getElementById("user-display").innerText = `Welcome, ${user}`;
+//     loadMenu();
+//     renderChart();
+//   }
+// }
+async function login() {
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value;
+
+  if (!user || !pass) {
+    alert("Please enter both username and password.");
+    return;
   }
+
+  const users = JSON.parse(localStorage.getItem("users") || "{}");
+
+  if (!users[user]) {
+    alert("User not found. Please register.");
+    return;
+  }
+
+  const hash = await hashPassword(pass);
+  if (users[user] !== hash) {
+    alert("Incorrect password.");
+    return;
+  }
+
+  localStorage.setItem("loggedInUser", user);
+
+  document.getElementById("login-section").style.display = "none";
+  document.getElementById("app-section").style.display = "block";
+  document.getElementById("user-display").innerText = `Welcome, ${user}`;
+
+  loadMenu();
+  renderChart();
+  updateDashboard();
 }
-
-
-
+// window.onload = function () {
+//   loadMenuFromStorage();
+//   renderMenuTable();
+//   loadMenu(); // Assuming this is defined elsewhere for bill UI
+// };
 window.onload = function () {
   loadMenuFromStorage();
   renderMenuTable();
-  loadMenu(); // Assuming this is defined elsewhere for bill UI
+  loadMenu();
+  updateDashboard();
+
+  const savedUser = localStorage.getItem("loggedInUser");
+
+  if (savedUser) {
+    document.getElementById("login-section").style.display = "none";
+    document.getElementById("app-section").style.display = "block";
+    document.getElementById("user-display").innerText = `Welcome, ${savedUser}`;
+  } else {
+    document.getElementById("login-section").style.display = "block";
+    document.getElementById("app-section").style.display = "none";
+  }
 };
+
 function toggleClearButton() {
   const input = document.getElementById("search-bar");
   const clearBtn = document.getElementById("clear-search");
   clearBtn.style.display = input.value.length ? "inline" : "none";
 }
-// window.onload = updateDashboard;
-window.onload = function () {
-  loadMenuFromStorage();     // ← get menu
-  renderMenuTable();         // ← show for editing
-  loadMenu();                // ← show on main menu
-  updateDashboard();
-};
+
 if (sessionStorage.getItem("user")) login();
 async function hashPassword(password) {
   const msgUint8 = new TextEncoder().encode(password);
@@ -860,14 +898,8 @@ document.getElementById("new-item-image").addEventListener("change", function (e
     reader.readAsDataURL(file);
   }
 });
+a
 
-window.onload = function () {
-  loadMenuFromStorage();
-  renderMenuTable();
-  loadMenu();
-  updateDashboard();
-  if (sessionStorage.getItem("user")) login();
-};
 function toggleMenuManager() {
   const manager = document.getElementById("menu-manager");
   if (manager.style.display === "none") {

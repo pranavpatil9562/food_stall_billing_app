@@ -174,7 +174,11 @@ input[type="text"] {
   border-radius: 8px;
   margin-bottom: 6px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
+
 .menu-item {
   width: 120px;
   padding: 10px;
@@ -505,4 +509,45 @@ input, button, select {
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
+/* === Mobile-friendly 4-in-a-row compact menu cards === */
+@media (max-width: 500px) {
+  #menu {
+    gap: 6px;
+    justify-content: space-between;
+  }
 
+  .menu-item {
+    width: 23%; /* ≈4 per row */
+    font-size: 12px;
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  .menu-image {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+
+  .menu-controls {
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .menu-controls button {
+    padding: 2px 6px;
+    font-size: 12px;
+  }
+
+  .menu-controls span {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 500px) {
+  .menu-image {
+    width: 80px;
+    height: 60px;
+  }
+}
