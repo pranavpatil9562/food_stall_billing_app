@@ -22,7 +22,7 @@ function loadMenu() {
 
     const div = document.createElement("div");
     div.className = "menu-item";
-    div.onclick = () => addToBill(item); // 👈 Make entire card clickable
+    div.onclick = () => addToBill(item); 
 
     const img = document.createElement("img");
     img.src = item.image;
@@ -227,54 +227,7 @@ function prepareAndPrint() {
    
 }
   
-  
-  // // Try raw‑print, fallback to printBill()
-  // printBillRaw(current);
-
-  
-  // Try raw‑print, fallback to printBill()
  
-// }
-// const DEFAULT_MENU = [
-//   { name: "Milk", price: 15, image: "images/milk.jpeg" },
-//   { name: "Tea", price: 10, image: "images/tea.jpg" },
-//   // ... all your original menu items
-// ];
-
-// let items = [];
-
-// const items = [
-//   { name: "Milk", price: 15, image: "images/milk.jpeg" },
-//   { name: "Tea", price: 10, image: "images/tea.jpg" },
-//   { name: "Coffee", price: 15, image: "images/coffee.jpg" },
-//   { name: "Boost", price: 20, image: "images/boost.jpg" },
-//   { name: "BlackTea", price: 15, image: "images/blacktea.jpg" },
-//   { name: "Idli", price: 15, image: "images/idli.jpg" },
-//   { name: "Dosa", price: 20, image: "images/dosa.jpg" },
-//   { name: "Wada", price: 10, image: "images/wada.jpg" },
-//   { name: "Uttapa", price: 15, image: "images/uttapam.jpg" },
-//   { name: "Alubhat", price: 20, image: "images/alubhat.jpg" },
-//   { name: "Samosa", price: 15, image: "images/samosa.jpg" },
-//   { name: "Vada Pav", price: 20, image: "images/vada_pav.jpg" },
-//   { name: "Mirchi", price: 10, image: "images/mirchi-bajji.jpg" },
-//   { name: "Bhonda", price: 15, image: "images/mysore-bonda.jpg" },
-//   { name: "Colddrinks", price: 10, image: "images/cold-drink.jpg" },
-//   { name: "Waterbottle", price: 15, image: "images/waterbottles.jpg" },
-//   { name: "Ice-cream", price: 15, image: "images/icecream.jpg" },
-//   { name: "Roti", price: 15, image: "images/others.jpg" },
-//   { name: "Rice", price: 15, image: "images/others.jpg" },
-//   { name: "Sambar", price: 15, image: "images/others.jpg" }
-// ];
-
-
-
-
-
-
-// function logout() {
-//   sessionStorage.clear();
-//   location.reload();
-// }
 function logout() {
   localStorage.removeItem("loggedInUser");
   document.getElementById("login-section").style.display = "block";
@@ -811,33 +764,33 @@ function loadMenuFromStorage() {
   }
 }
 
-function loadMenu() {
-  const menuDiv = document.getElementById("menu");
-  menuDiv.innerHTML = "";
-  items.forEach((item, index) => {
-    const existing = selectedItems.find(i => i.name === item.name);
-    const quantity = existing ? existing.qty : 0;
-    const div = document.createElement("div");
-    div.className = "menu-item";
-    const img = document.createElement("img");
-    img.src = item.image;
-    img.alt = item.name;
-    img.className = "menu-image";
-    const label = document.createElement("div");
-    label.innerHTML = `${item.name}<br>₹${item.price}`;
-    const controls = document.createElement("div");
-    controls.className = "menu-controls";
-    controls.innerHTML = `
-      <button onclick="changeQty(${index}, -1)">−</button>
-      <span id="qty-${index}">${quantity}</span>
-      <button onclick="changeQty(${index}, 1)">+</button>
-    `;
-    div.appendChild(img);
-    div.appendChild(label);
-    div.appendChild(controls);
-    menuDiv.appendChild(div);
-  });
-}
+// function loadMenu() {
+//   const menuDiv = document.getElementById("menu");
+//   menuDiv.innerHTML = "";
+//   items.forEach((item, index) => {
+//     const existing = selectedItems.find(i => i.name === item.name);
+//     const quantity = existing ? existing.qty : 0;
+//     const div = document.createElement("div");
+//     div.className = "menu-item";
+//     const img = document.createElement("img");
+//     img.src = item.image;
+//     img.alt = item.name;
+//     img.className = "menu-image";
+//     const label = document.createElement("div");
+//     label.innerHTML = `${item.name}<br>₹${item.price}`;
+//     const controls = document.createElement("div");
+//     controls.className = "menu-controls";
+//     controls.innerHTML = `
+//       <button onclick="changeQty(${index}, -1)">−</button>
+//       <span id="qty-${index}">${quantity}</span>
+//       <button onclick="changeQty(${index}, 1)">+</button>
+//     `;
+//     div.appendChild(img);
+//     div.appendChild(label);
+//     div.appendChild(controls);
+//     menuDiv.appendChild(div);
+//   });
+// }
 
 function renderMenuTable() {
   const tbody = document.querySelector("#menu-item-table tbody");
