@@ -245,10 +245,20 @@ function filterMenu() {
 }
 function addToBill(item) {
   const existing = selectedItems.find(i => i.name === item.name);
-  if (existing) existing.qty++;
-  else selectedItems.push({ ...item, qty: 1 });
+  if (existing) {
+    existing.qty++;
+  } else {
+    selectedItems.push({ ...item, qty: 1 });
+  }
   renderBill();
+  // ✅ Update quantity shown on the card
+  const index = items.findIndex(i => i.name === item.name);
+  const qtySpan = document.getElementById(`qty-${index}`);
+  if (qtySpan) {
+    qtySpan.innerText = existing ? existing.qty : 1;
+  }
 }
+
 function changeQty(index, delta) {
   const item = items[index];
   const existing = selectedItems.find(i => i.name === item.name);

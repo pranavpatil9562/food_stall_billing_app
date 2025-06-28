@@ -100,6 +100,11 @@ h1, h2 {
   transform: scale(1.05);
   background: linear-gradient(to right, #ffa726, #ff9800);
 }
+.menu-item:active {
+  transform: scale(0.96);
+  background-color: #ffe082;
+}
+
 
 button {
   padding: 10px 15px;
