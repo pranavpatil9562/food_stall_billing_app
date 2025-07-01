@@ -1,17 +1,10 @@
 
-
 let items = [];
 let selectedItems = [];
 let billNo = parseInt(localStorage.getItem("billNo")) || 1;
 let sales = JSON.parse(localStorage.getItem("sales") || "[]");
 let chart;
 let newImageBase64 = "";
-// let selectedItems = [];
-// let billNo = parseInt(localStorage.getItem("billNo")) || 1;
-// let sales = JSON.parse(localStorage.getItem("sales")) || [];
-// let printerDevice = null;
-// let printerCharacteristic = null;
-
 function loadMenu() {
   const menuDiv = document.getElementById("menu");
   menuDiv.innerHTML = "";
