@@ -39,6 +39,32 @@ function loadMenu() {
     menuDiv.appendChild(div);
   });
 }
+let printerDevice = null;
+let printerCharacteristic = null;
+function prepareAndPrint() {
+  const date = new Date();
+  const current = {
+    billNo,
+    date: date.toLocaleDateString(),
+    time: date.toLocaleTimeString(),
+    items: [...selectedItems],
+    total: selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0)
+  };
+
+  // Save just like printBill()
+  sales.push(current);
+  localStorage.setItem("sales", JSON.stringify(sales));
+  localStorage.setItem("billNo", ++billNo);
+ 
+   printBillRaw(current).then(() => {
+    
+    selectedItems = [];
+    loadMenu();
+    renderBill();
+    renderChart(); 
+    updateDashboard();});
+ 
+}
 
 function printBill() {
   const date = new Date();
@@ -90,8 +116,7 @@ Grand Total: ₹${current.total}
   updateDashboard();
 
 }
-let printerDevice = null;
-let printerCharacteristic = null;
+
 
 // === ESC/POS builder ===
 function buildEscPosCommands(current) {
@@ -99,6 +124,7 @@ function buildEscPosCommands(current) {
   let cmds = "";
   cmds += "\x1B\x40";                // Init
   cmds += "\x1B\x61\x01";            // Center
+  // cmds += "                         \n";
   cmds += "ABHI TIFFIN CENTER\n";
   cmds += "\x1B\x61\x00";            // Left
   cmds += `Bill No: ATC-${billNo}\n`;
@@ -108,6 +134,7 @@ function buildEscPosCommands(current) {
   items.forEach(i => {
     cmds += `${i.name.padEnd(10)} ${i.qty.toString().padEnd(3)} x${i.price}     ${i.price*i.qty} \n`;
   });
+  
   cmds += "--------------\n";
   cmds += `Total items:${current.items.length}\n`;
   cmds += "-----------------------------\n";
@@ -179,48 +206,6 @@ if (navigator.bluetooth) {
 }
 
 
-
-
-// === Wrapper to prepare data & call direct‑print ===
-function prepareAndPrint() {
-  const date = new Date();
-  const current = {
-    billNo,
-    date: date.toLocaleDateString(),
-    time: date.toLocaleTimeString(),
-    items: [...selectedItems],
-    total: selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0)
-  };
-
-  // Save just like printBill()
-  sales.push(current);
-  localStorage.setItem("sales", JSON.stringify(sales));
-  localStorage.setItem("billNo", ++billNo);
-  // printBillRaw(current).catch(err => {
-  //   console.error("Print failed:", err);
-  //   alert("Print failed. Please try again.");
-  // }).finally(() => {
-  //   selectedItems = [];
-  //   loadMenu();          // <== reset all quantities
-  //   renderBill();
-  //   renderChart();
-  //   updateDashboard();
-  // });
-   printBillRaw(current).then(() => {
-    
-    selectedItems = [];
-    loadMenu();
-    renderBill();
-    renderChart();
-    updateDashboard();});
-  //   .catch(err => {
-  //   console.error("Print failed:", err);
-  //   alert("Print failed. Please try again.");
-  //  });
-   
-}
-  
- 
 function logout() {
   localStorage.removeItem("loggedInUser");
   document.getElementById("login-section").style.display = "block";
