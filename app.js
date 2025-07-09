@@ -1,7 +1,9 @@
 
 let items = [];
 let selectedItems = [];
-let billNo = parseInt(localStorage.getItem("billNo")) || 1;
+const loggedInUser = localStorage.getItem("loggedInUser") || "default";
+let billNo = parseInt(localStorage.getItem(`billNo_${loggedInUser}`)) || 1;
+
 let sales = JSON.parse(localStorage.getItem("sales") || "[]");
 let chart;
 let newImageBase64 = "";
@@ -54,7 +56,9 @@ function prepareAndPrint() {
   // Save just like printBill()
   sales.push(current);
   localStorage.setItem("sales", JSON.stringify(sales));
-  localStorage.setItem("billNo", ++billNo);
+  billNo++;
+  localStorage.setItem(`billNo_${loggedInUser}`, billNo);
+
  
    printBillRaw(current).then(() => {
     
@@ -78,7 +82,9 @@ function printBill() {
 
   sales.push(current);
   localStorage.setItem("sales", JSON.stringify(sales));
-  localStorage.setItem("billNo", ++billNo);
+  billNo++;
+  localStorage.setItem(`billNo_${loggedInUser}`, billNo);
+
 
   // let printWindow = window.open("", "_blank"); // earlier this print method was used,
   let printWindow = window.open('', '', 'width=400,height=600');// this prints bill in chrome tab of given size
@@ -887,4 +893,9 @@ function handleEnter(event) {
     }
   }
 }
+document.getElementById("report-range").addEventListener("change", function () {
+  const show = this.value === "custom";
+  document.getElementById("start-date").style.display = show ? "block" : "none";
+  document.getElementById("end-date").style.display = show ? "block" : "none";
+});
 

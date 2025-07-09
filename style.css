@@ -218,6 +218,12 @@ input[type="text"] {
   grid-template-rows: repeat(3, 1fr);
   gap: 15px;
 }
+@media screen and (max-width: 768px) {
+  .dashboard-metrics {
+    grid-template-rows: 1fr;
+  }
+}
+
 
 .card {
   background: #2b3b4e;

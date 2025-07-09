@@ -140,6 +140,25 @@
     </div>
      
   </div>
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const reportRange = document.getElementById("report-range");
+    const startDate = document.getElementById("start-date");
+    const endDate = document.getElementById("end-date");
+
+    function toggleDateInputs() {
+      const isCustom = reportRange.value === "custom";
+      startDate.style.display = isCustom ? "block" : "none";
+      endDate.style.display = isCustom ? "block" : "none";
+    }
+
+    reportRange.addEventListener("change", toggleDateInputs);
+
+    // Run on load in case the page loads with "custom" already selected
+    toggleDateInputs();
+  });
+</script>
+
    
    <!-- QZ Tray for desktop raw‑print -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
