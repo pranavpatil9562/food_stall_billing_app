@@ -148,6 +148,7 @@ function buildEscPosCommands(current) {
   cmds += "-----------------------------\n";
   cmds += "Thank You! Visit Again.\n";
   cmds += "Software by Tech Innovators.\n\n\n";
+  cmds += "/n/n/n/n";
   cmds += "\x1D\x56\x41";            // Full cut
   return cmds;
 }
@@ -190,11 +191,11 @@ if (navigator.bluetooth) {
     }
 
     // Send chunks
-    const chunkSize = 512;
+    const chunkSize = 200;
     for (let i = 0; i < encoded.length; i += chunkSize) {
       const chunk = encoded.slice(i, i + chunkSize);
       await printerCharacteristic.writeValue(chunk);
-      await new Promise(resolve => setTimeout(resolve, 50)); // small delay
+      await new Promise(resolve => setTimeout(resolve, 80)); // small delay
     }
 
     return;
