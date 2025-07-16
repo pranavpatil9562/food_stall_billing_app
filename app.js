@@ -148,7 +148,7 @@ function buildEscPosCommands(current) {
   cmds += "-----------------------------\n";
   cmds += "Thank You! Visit Again.\n";
   cmds += "Software by Tech Innovators.\n\n\n";
-  cmds += "/n/n/n/n";
+  //cmds += "/n/n/n/n";
   cmds += "\x1D\x56\x41";            // Full cut
   return cmds;
 }
@@ -176,8 +176,8 @@ async function printBillRaw(current) {
  // 2) Web Bluetooth (mobile)
 if (navigator.bluetooth) {
   try {
-    // Connect only once
-    if (!printerDevice || !printerCharacteristic) {
+    // Check if connected, else reconnect
+    if (!printerDevice || !printerCharacteristic || !printerDevice.gatt.connected) {
       printerDevice = await navigator.bluetooth.requestDevice({
         acceptAllDevices: true,
         optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
@@ -186,16 +186,15 @@ if (navigator.bluetooth) {
       const server = await printerDevice.gatt.connect();
       const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
       printerCharacteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
-
-      console.log("🔗 Printer connected:", printerDevice.name);
+      console.log("🔗 Printer reconnected:", printerDevice.name);
     }
 
-    // Send chunks
+    // Send in chunks
     const chunkSize = 200;
     for (let i = 0; i < encoded.length; i += chunkSize) {
       const chunk = encoded.slice(i, i + chunkSize);
       await printerCharacteristic.writeValue(chunk);
-      await new Promise(resolve => setTimeout(resolve, 80)); // small delay
+      await new Promise(resolve => setTimeout(resolve, 80));
     }
 
     return;
@@ -205,6 +204,7 @@ if (navigator.bluetooth) {
     printerCharacteristic = null;
   }
 }
+
 
 
   // 3) Fallback
