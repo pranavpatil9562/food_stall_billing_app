@@ -190,11 +190,11 @@ if (navigator.bluetooth) {
     }
 
     // Send in chunks
-    const chunkSize = 200;
+    const chunkSize = 512;
     for (let i = 0; i < encoded.length; i += chunkSize) {
       const chunk = encoded.slice(i, i + chunkSize);
       await printerCharacteristic.writeValue(chunk);
-      await new Promise(resolve => setTimeout(resolve, 80));
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
 
     return;
