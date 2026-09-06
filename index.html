@@ -57,9 +57,15 @@
         <tbody></tbody>
       </table>
       <div id="total-display">Total: ₹0</div>
+      <div class="order-source-buttons" aria-label="Choose order source">
+        <button class="swiggy-button" onclick="prepareAndPrint('Swiggy')">Swiggy</button>
+        <button class="zomato-button" onclick="prepareAndPrint('Zomato')">Zomato</button>
+        <button class="own-order-button" onclick="prepareAndPrint('Own Order')">Own Order</button>
+      </div>
       <!-- Always-visible print button -->
-<div class="print-button-container">
-  <button onclick="prepareAndPrint()">🖨️ Print Bill</button>
+      <div class="print-button-container">
+        <button onclick="prepareAndPrint('Own Order')">🖨️ Print Bill</button>
+      </div>
 </div>
 
 <div id="dashboard" class="dashboard-box">

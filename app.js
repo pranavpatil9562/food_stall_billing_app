@@ -43,12 +43,18 @@ function loadMenu() {
 }
 let printerDevice = null;
 let printerCharacteristic = null;
-function prepareAndPrint() {
+function prepareAndPrint(orderSource = "Own Order") {
+  if (selectedItems.length === 0) {
+    alert("Please add at least one item before printing.");
+    return;
+  }
+
   const date = new Date();
   const current = {
     billNo,
     date: date.toLocaleDateString(),
     time: date.toLocaleTimeString(),
+    orderSource,
     items: [...selectedItems],
     total: selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0)
   };
@@ -70,20 +76,29 @@ function prepareAndPrint() {
  
 }
 
-function printBill() {
-  const date = new Date();
-  const current = {
-    date: date.toLocaleDateString(),
-    time: date.toLocaleTimeString(),
-    billNo,
-    items: [...selectedItems],
-    total: selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0)
-  };
+function printBill(orderSource = "Own Order", existingBill = null) {
+  if (!existingBill && selectedItems.length === 0) {
+    alert("Please add at least one item before printing.");
+    return;
+  }
 
-  sales.push(current);
-  localStorage.setItem("sales", JSON.stringify(sales));
-  billNo++;
-  localStorage.setItem(`billNo_${loggedInUser}`, billNo);
+  const current = existingBill || (() => {
+    const date = new Date();
+    const newBill = {
+      date: date.toLocaleDateString(),
+      time: date.toLocaleTimeString(),
+      billNo,
+      orderSource,
+      items: [...selectedItems],
+      total: selectedItems.reduce((sum, i) => sum + i.price * i.qty, 0)
+    };
+
+    sales.push(newBill);
+    localStorage.setItem("sales", JSON.stringify(sales));
+    billNo++;
+    localStorage.setItem(`billNo_${loggedInUser}`, billNo);
+    return newBill;
+  })();
 
 
   // let printWindow = window.open("", "_blank"); // earlier this print method was used,
@@ -99,6 +114,7 @@ function printBill() {
              Bidar
 -------------------------------
 Bill No:ATC-${current.billNo}
+Order Type:${current.orderSource}
 Date,Time:${current.date},${current.time}
 -------------------------------
 Item       Qty  Rate  Total
@@ -126,7 +142,7 @@ Grand Total: ₹${current.total}
 
 // === ESC/POS builder ===
 function buildEscPosCommands(current) {
-  const { billNo, date, time, items, total } = current;
+  const { billNo, date, time, orderSource, items, total } = current;
   let cmds = "";
   cmds += "\x1B\x40";                // Init
   cmds += "\x1B\x61\x01";            // Center
@@ -134,6 +150,7 @@ function buildEscPosCommands(current) {
   cmds += "ABHI TIFFIN CENTER\n";
   cmds += "\x1B\x61\x00";            // Left
   cmds += `Bill No: ATC-${billNo}\n`;
+  cmds += `Order Type: ${orderSource || "Own Order"}\n`;
   cmds += `Date:${date},Time:${time}\n`;
   cmds += "-----------------------------\n";
   cmds += "Item      Qty  Rate  Total\n";
@@ -209,7 +226,7 @@ if (navigator.bluetooth) {
 
   // 3) Fallback
   alert("Direct print unavailable—opening browser print dialog.");
-  printBill();
+  printBill(current.orderSource, current);
 }
 
 
@@ -899,4 +916,3 @@ document.getElementById("report-range").addEventListener("change", function () {
   document.getElementById("start-date").style.display = show ? "block" : "none";
   document.getElementById("end-date").style.display = show ? "block" : "none";
 });
-

@@ -510,6 +510,40 @@ input[type="date"] {
   text-align: center;
 }
 
+.order-source-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.order-source-buttons button {
+  flex: 1;
+  max-width: 180px;
+  margin: 0;
+  font-weight: bold;
+}
+
+.swiggy-button {
+  background-color: #fc8019;
+}
+
+.swiggy-button:hover {
+  background-color: #d96600;
+}
+
+.zomato-button {
+  background-color: #e23744;
+}
+
+.zomato-button:hover {
+  background-color: #b51f2c;
+}
+
+.own-order-button {
+  background-color: #4caf50;
+}
+
 button {
   display: block;
   width: 100%;
@@ -560,5 +594,14 @@ input, button, select {
   .menu-image {
     width: 80px;
     height: 60px;
+  }
+
+  .order-source-buttons {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .order-source-buttons button {
+    max-width: none;
   }
 }
